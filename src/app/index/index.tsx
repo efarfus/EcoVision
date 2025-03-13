@@ -1,10 +1,11 @@
 import { Text, View } from "react-native";
+import TextInputLogin from "../components/TextInputLogin";
 
 
 export default function Login(){
     return(
         <View>
-            <Text>Oiii</Text>
+            <TextInputLogin placeholder="Username"></TextInputLogin>
         </View>
     )
 }
