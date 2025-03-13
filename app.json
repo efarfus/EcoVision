@@ -9,12 +9,21 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyCZwE1_sh6mfHhjfWeLQOhDSHlFA7xqNho"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.EcoVision",
+      "config": {
+        "googleMaps": {
+          "apiKey": "SUA_CHAVE_API_AQUI"
+        }
       }
     },
     "web": {
