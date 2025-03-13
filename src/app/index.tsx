@@ -25,7 +25,7 @@ export default function Login() {
         title="Login"
         onPress={() => {
           router.push("/screens/home");
-        }}
+        }}//oi
       ></Button>
       <Button
         title="Sign Up"
