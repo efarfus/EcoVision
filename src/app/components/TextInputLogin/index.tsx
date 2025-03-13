@@ -1,16 +1,21 @@
-import { Text, TextInput, View } from "react-native";
-import { IconUser } from "@tabler/icons-react-native";
+import { TextInput, View } from "react-native";
 import styles from "./styles";
 
 type TextInputLoginProps = {
   placeholder: string;
+  IconComponent: React.ElementType;
 };
 
-export default function TextInputLogin({ placeholder }: TextInputLoginProps) {
+export default function TextInputLogin({
+  placeholder,
+  IconComponent,
+}: TextInputLoginProps) {
   return (
     <View style={styles.container}>
-      <IconUser size={24} color="#000000" strokeWidth={0.5}></IconUser>
-      <TextInput style={styles.textInput} placeholder={placeholder}></TextInput>
+      {IconComponent && (
+        <IconComponent size={24} color="#000000" strokeWidth={1} />
+      )}
+      <TextInput style={styles.textInput} placeholder={placeholder} />
     </View>
   );
 }
