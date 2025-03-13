@@ -9,13 +9,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#17950E",
     padding: 10,
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 3,
     borderColor: "#17950E",
     borderRadius: 5,
   },
   text: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
   },
 });
 export default styles;
