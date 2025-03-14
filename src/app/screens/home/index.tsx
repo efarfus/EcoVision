@@ -1,26 +1,65 @@
 import React from "react";
-import { View } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { View, Text } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { Ionicons } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { styles } from "../../styles/home";
+
+const Tab = createBottomTabNavigator();
 
 export default function Home() {
   return (
-    <View style={styles.container}>
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: -23.55052,  // Latitude inicial (São Paulo)
-          longitude: -46.633308, // Longitude inicial
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+    <Tab.Navigator
+      initialRouteName="Home" 
+      screenOptions={{
+        tabBarActiveTintColor: "#17950E", 
+        tabBarInactiveTintColor: "#000000",
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={() => (
+          <View style={styles.container}>
+            <MapView
+              provider={PROVIDER_GOOGLE}
+              style={styles.map}
+              initialRegion={{
+                latitude: -3.119028,
+                longitude: -60.021731,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}
+            >
+              <Marker
+                coordinate={{ latitude: -3.119028, longitude: -60.021731 }}
+                title="Manaus - AM"
+                description="Localização inicial no Amazonas"
+              />
+            </MapView>
+          </View>
+        )}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map" size={size} color={color} />
+          ),
+          headerShown: false,
         }}
-      >
-        <Marker
-          coordinate={{ latitude: -23.55052, longitude: -46.633308 }}
-          title="Teste de Localização"
-          description="Esse é um marcador de teste"
-        />
-      </MapView>
-    </View>
+      />
+
+      <Tab.Screen
+        name="Profile"
+        component={() => (
+          <View style={styles.container}>
+            <Text>Perfil</Text>
+          </View>
+        )}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+          headerShown: false, 
+        }}
+      />
+    </Tab.Navigator>
   );
 }

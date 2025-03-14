@@ -5,7 +5,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     justifyContent: "center",
-    padding: 20,
     gap: 10,
   },
   map: {
