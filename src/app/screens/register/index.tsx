@@ -1,14 +1,16 @@
-import { Image, ImageBackground, Text, View } from "react-native";
-import TextInputLogin from "./components/TextInputLogin";
-import styles from "./styles/login/styles";
-import { IconKey, IconUser } from "@tabler/icons-react-native";
-import Button from "./components/Button";
+import { Image, ImageBackground, View } from "react-native";
+import styles from "../../styles/login/styles";
+import TextInputLogin from "../../components/TextInputLogin";
+import { IconKey, IconMail, IconUser } from "@tabler/icons-react-native";
 import { router } from "expo-router";
+import Button from "../../components/Button";
 import { useState } from "react";
 
-export default function Login() {
+export default function Register() {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   return (
     <ImageBackground
@@ -27,22 +29,25 @@ export default function Login() {
         onChangeText={(text) => setUsername(text)}
       ></TextInputLogin>
       <TextInputLogin
+        placeholder="Email"
+        IconComponent={IconMail}
+        onChangeText={(text) => setEmail(text)}
+      ></TextInputLogin>
+      <TextInputLogin
         placeholder="Password"
         IconComponent={IconKey}
         onChangeText={(text) => setPassword(text)}
       ></TextInputLogin>
+      <TextInputLogin
+        placeholder="Confirm Password"
+        IconComponent={IconKey}
+        onChangeText={(text) => setConfirmPassword(text)}
+      ></TextInputLogin>
       <Button
-        title="Login"
+        containerStyle={{ marginTop: 20 }}
+        title="Register"
         onPress={() => {
           router.push("/screens/home");
-        }}
-      ></Button>
-      <Button
-        title="Sign Up"
-        containerStyle={{ backgroundColor: "white" }}
-        textStyle={{ color: "#17950E" }}
-        onPress={() => {
-          router.push("/screens/register");
         }}
       ></Button>
     </ImageBackground>
