@@ -22,8 +22,10 @@ export default function Login() {
           email,
           password,
         });
+
+        await sessionStorage.setItem("token", response.data.token);
     
-        if (response.status === 201) {
+        if (response.status === 200) {
           router.push("/screens/home");
         }
       } catch (error: any) {

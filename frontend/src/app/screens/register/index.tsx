@@ -30,8 +30,10 @@ export default function Register() {
         password,
         name: username,
       });
+
+      await sessionStorage.setItem("token", response.data.token);
   
-      if (response.status === 201) {
+      if (response.status === 200) {
         alert("Cadastro realizado com sucesso!");
         router.push("/screens/home");
       }
