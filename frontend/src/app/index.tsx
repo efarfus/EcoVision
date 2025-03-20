@@ -5,10 +5,32 @@ import { IconKey, IconUser } from "@tabler/icons-react-native";
 import Button from "./components/Button";
 import { router } from "expo-router";
 import { useState } from "react";
+import { api } from "@/lib/axios";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+      if (!email || !password) {
+        alert("Todos os campos são obrigatórios!");
+        return;
+      }
+    
+      try {
+        const response = await api.post("/login", {
+          email,
+          password,
+        });
+    
+        if (response.status === 201) {
+          router.push("/screens/home");
+        }
+      } catch (error: any) {
+        console.error("Erro ao registrar:", error);
+        alert(error.response?.data?.message || "Erro ao registrar!");
+      }
+    };
 
   return (
     <ImageBackground
@@ -22,9 +44,9 @@ export default function Login() {
       ></Image>
       <View style={styles.line}></View>
       <TextInputLogin
-        placeholder="Username"
+        placeholder="email"
         IconComponent={IconUser}
-        onChangeText={(text) => setUsername(text)}
+        onChangeText={(text) => setEmail(text)}
       ></TextInputLogin>
       <TextInputLogin
         placeholder="Password"
@@ -33,9 +55,7 @@ export default function Login() {
       ></TextInputLogin>
       <Button
         title="Login"
-        onPress={() => {
-          router.push("/screens/home");
-        }}
+        onPress={handleLogin}
       ></Button>
       <Button
         title="Sign Up"

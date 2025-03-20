@@ -26,4 +26,10 @@ app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
 
 app.use(express.static(path.join(__dirname, '../public')));
 
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true 
+}));
+
 app.use('/', usersRoutes);
