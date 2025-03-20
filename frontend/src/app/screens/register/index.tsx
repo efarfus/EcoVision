@@ -5,12 +5,42 @@ import { IconKey, IconMail, IconUser } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import Button from "../../components/Button";
 import { useState } from "react";
+import { api } from "@/lib/axios";
 
 export default function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleRegister = async () => {
+    if (!username || !email || !password || !confirmPassword) {
+      alert("Todos os campos são obrigatórios!");
+      return;
+    }
+  
+    if (password !== confirmPassword) {
+      alert("As senhas não coincidem!");
+      return;
+    }
+  
+    try {
+      const response = await api.post("/signup", {
+        email,
+        password,
+        name: username,
+      });
+  
+      if (response.status === 201) {
+        alert("Cadastro realizado com sucesso!");
+        router.push("/screens/home");
+      }
+    } catch (error: any) {
+      console.error("Erro ao registrar:", error);
+      alert(error.response?.data?.message || "Erro ao registrar!");
+    }
+  };
+  
 
   return (
     <ImageBackground
@@ -46,9 +76,7 @@ export default function Register() {
       <Button
         containerStyle={{ marginTop: 20 }}
         title="Register"
-        onPress={() => {
-          router.push("/screens/home");
-        }}
+        onPress={handleRegister}
       ></Button>
     </ImageBackground>
   );
