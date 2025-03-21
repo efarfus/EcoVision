@@ -13,10 +13,12 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = async () => {
+    console.log("chamou")
     if (!username || !email || !password || !confirmPassword) {
       alert("Todos os campos são obrigatórios!");
       return;
     }
+    console.log("chamou2")
 
     if (password !== confirmPassword) {
       alert("As senhas não coincidem!");
@@ -24,7 +26,9 @@ export default function Register() {
     }
 
     try {
+      console.log("chamou3")
       const response = await postSignUp(email, password, username);
+      console.log('response')
       if (response) {
         Alert.alert("Registrado com sucesso!");
         router.push("/index");
