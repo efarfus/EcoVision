@@ -1,12 +1,11 @@
-import { Image, ImageBackground, View } from "react-native";
+import { Alert, Image, ImageBackground, View } from "react-native";
 import styles from "../../styles/login/styles";
 import TextInputLogin from "../../components/TextInputLogin";
 import { IconKey, IconMail, IconUser } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import Button from "../../components/Button";
 import { useState } from "react";
-import { api } from "@/lib/axios";
-
+import { postSignUp } from "../../services/post/postSignUp";
 export default function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -18,29 +17,22 @@ export default function Register() {
       alert("Todos os campos são obrigatórios!");
       return;
     }
-  
+
     if (password !== confirmPassword) {
       alert("As senhas não coincidem!");
       return;
     }
-  
+
     try {
-      const response = await api.post("/signup", {
-        email,
-        password,
-        name: username,
-      });
-  
-      if (response.status === 201) {
-        alert("Cadastro realizado com sucesso!");
-        router.push("/screens/home");
+      const response = await postSignUp(email, password, username);
+      if (response) {
+        Alert.alert("Registrado com sucesso!");
+        router.push("/index");
       }
-    } catch (error: any) {
-      console.error("Erro ao registrar:", error);
-      alert(error.response?.data?.message || "Erro ao registrar!");
+    } catch (error) {
+      alert("Erro ao registrar!");
     }
   };
-  
 
   return (
     <ImageBackground

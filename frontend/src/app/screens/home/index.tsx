@@ -14,7 +14,7 @@ export default function Home() {
       screenOptions={{
         tabBarActiveTintColor: "#17950E", 
         tabBarInactiveTintColor: "#000000",
-      }}//a
+      }}
     >
       <Tab.Screen
         name="Home"
