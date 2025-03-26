@@ -40,7 +40,7 @@ export default function Login() {
       ></Image>
       <View style={styles.line}></View>
       <TextInputLogin
-        placeholder="Username"
+        placeholder="Email"
         IconComponent={IconUser}
         onChangeText={(text) => setUsername(text)}
       ></TextInputLogin>
