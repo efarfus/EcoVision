@@ -9,22 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
-      "config": {
-        "googleMapsApiKey": "AIzaSyCZwE1_sh6mfHhjfWeLQOhDSHlFA7xqNho"
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.EcoVision",
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyCZwE1_sh6mfHhjfWeLQOhDSHlFA7xqNho"
-        }
-      }
+      "package": "com.anonymous.EcoVision"
     },
     "web": {
       "bundler": "metro",

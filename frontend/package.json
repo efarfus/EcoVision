@@ -44,7 +44,7 @@
     "react-native-svg": "^15.11.2",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
-    "react-native-webview": "13.12.5",
+    "react-native-webview": "^13.12.5",
     "tabler": "^1.0.0-alpha.8",
     "tabler-icons-react": "^1.56.0",
     "tabler-react-native": "^1.1.0"
