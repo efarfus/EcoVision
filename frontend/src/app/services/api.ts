@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 export const api = axios.create({
@@ -5,7 +6,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("token");
+  const token = AsyncStorage.getItem('token'); 
   if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }

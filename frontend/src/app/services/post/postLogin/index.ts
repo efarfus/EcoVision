@@ -1,4 +1,6 @@
 import { api } from "../../api";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 type PostLoginData = {
   email: string;
@@ -12,7 +14,7 @@ export const postLogin = async ({ email, password }: PostLoginData) => {
       password,
     });
 
-    await sessionStorage.setItem("token", response.data.token);
+    await AsyncStorage.setItem("token", response.data.token);
 
     return response.data;
   } catch (error) {

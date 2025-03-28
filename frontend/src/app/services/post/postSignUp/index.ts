@@ -1,4 +1,5 @@
 import { api } from "../../api";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const postSignUp = async (
   email: string,
@@ -12,7 +13,9 @@ export const postSignUp = async (
       name: username,
     });
 
-    await sessionStorage.setItem("token", response.data.token);
+    console.log('Enviou e recebeu response: ', response.data.token)
+
+    await AsyncStorage.setItem("token", response.data.token);
 
     return response.data;
   } catch (error: any) {
