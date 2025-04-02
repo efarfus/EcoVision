@@ -2,7 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "http://192.168.11.143:3000",
+  // Rotear com o celular e ver o ipv4 e adicionar abaixo
+  baseURL: "http://192.168.245.201:3000",
 });
 
 api.interceptors.request.use((config) => {
