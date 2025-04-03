@@ -18,11 +18,13 @@ export default function Login() {
     }
 
     try {
-      const response = await postLogin({ email: username, password });
-      if (response) {
-        Alert.alert("Logado com sucesso!");
-        router.push("/screens/home");
-      }
+      router.push("/screens/home");
+
+      // const response = await postLogin({ email: username, password });
+      // if (response) {
+      //   Alert.alert("Logado com sucesso!");
+      //   router.push("/screens/home");
+      // }
     } catch (error) {
       alert("Erro ao logar!");
     }
