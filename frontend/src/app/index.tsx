@@ -12,10 +12,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      alert("Todos os campos são obrigatórios!");
-      return;
-    }
+    // if (!username || !password) {
+    //   alert("Todos os campos são obrigatórios!");
+    //   return;
+    // }
 
     try {
       router.push("/screens/home");
