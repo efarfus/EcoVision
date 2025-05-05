@@ -1,38 +1,32 @@
-import { Image, ImageBackground, Text, View } from "react-native";
+import { Alert, Image, ImageBackground, Text, View } from "react-native";
 import TextInputLogin from "./components/TextInputLogin";
 import styles from "./styles/login/styles";
 import { IconKey, IconUser } from "@tabler/icons-react-native";
 import Button from "./components/Button";
 import { router } from "expo-router";
 import { useState } from "react";
-import { api } from "@/lib/axios";
+import { postLogin } from "./services/post/postLogin";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-      if (!email || !password) {
-        alert("Todos os campos são obrigatórios!");
-        return;
-      }
-    
-      try {
-        const response = await api.post("/login", {
-          email,
-          password,
-        });
+    if (!email || !password) {
+      alert("Todos os campos são obrigatórios!");
+      return;
+    }
 
-        await sessionStorage.setItem("token", response.data.token);
-    
-        if (response.status === 200) {
-          router.push("/screens/home");
-        }
-      } catch (error: any) {
-        console.error("Erro ao registrar:", error);
-        alert(error.response?.data?.message || "Erro ao registrar!");
+    try {
+      const response = await postLogin({ email: email, password });
+      if (response) {
+        Alert.alert("Logado com sucesso!");
+        router.push("/screens/home");
       }
-    };
+    } catch (error) {
+      alert("Erro ao logar!");
+    }
+  };
 
   return (
     <ImageBackground
@@ -46,7 +40,7 @@ export default function Login() {
       ></Image>
       <View style={styles.line}></View>
       <TextInputLogin
-        placeholder="email"
+        placeholder="Email"
         IconComponent={IconUser}
         onChangeText={(text) => setEmail(text)}
       ></TextInputLogin>
@@ -57,7 +51,9 @@ export default function Login() {
       ></TextInputLogin>
       <Button
         title="Login"
-        onPress={handleLogin}
+        onPress={() => {
+          handleLogin();
+        }}
       ></Button>
       <Button
         title="Sign Up"

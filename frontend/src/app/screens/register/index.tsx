@@ -1,12 +1,11 @@
-import { Image, ImageBackground, View } from "react-native";
+import { Alert, Image, ImageBackground, View } from "react-native";
 import styles from "../../styles/login/styles";
 import TextInputLogin from "../../components/TextInputLogin";
 import { IconKey, IconMail, IconUser } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import Button from "../../components/Button";
 import { useState } from "react";
-import { api } from "@/lib/axios";
-
+import { postSignUp } from "../../services/post/postSignUp";
 export default function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -14,35 +13,30 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = async () => {
+    console.log("chamou")
     if (!username || !email || !password || !confirmPassword) {
       alert("Todos os campos são obrigatórios!");
       return;
     }
-  
+    console.log("chamou2")
+
     if (password !== confirmPassword) {
       alert("As senhas não coincidem!");
       return;
     }
-  
-    try {
-      const response = await api.post("/signup", {
-        email,
-        password,
-        name: username,
-      });
 
-      await sessionStorage.setItem("token", response.data.token);
-  
-      if (response.status === 200) {
-        alert("Cadastro realizado com sucesso!");
-        router.push("/screens/home");
+    try {
+      console.log("chamou3")
+      const response = await postSignUp(email, password, username);
+      console.log('response')
+      if (response) {
+        Alert.alert("Registrado com sucesso!");
+        router.push("/");
       }
-    } catch (error: any) {
-      console.error("Erro ao registrar:", error);
-      alert(error.response?.data?.message || "Erro ao registrar!");
+    } catch (error) {
+      alert("Erro ao registrar!");
     }
   };
-  
 
   return (
     <ImageBackground
