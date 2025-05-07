@@ -6,7 +6,7 @@ const fetchSatelliteImage = async (
 ): Promise<string | ArrayBuffer | null> => {
   const token = await getAccessToken();
 
-  const buffer = 0.01; // Definir o buffer de 1km
+  const buffer = 0.3; // Definir o buffer de 1km
   const polygonCoordinates = [
     [longitude - buffer, latitude - buffer],
     [longitude + buffer, latitude - buffer],
@@ -28,7 +28,7 @@ const fetchSatelliteImage = async (
           type: "S2L2A", // Sentinel-2 imagem com correção atmosférica
           dataFilter: {
             timeRange: {
-              from: "2016-12-01T00:00:00Z",
+              from: "2016-01-01T00:00:00Z",
               to: "2025-04-01T00:00:00Z",
             },
             maxCloudCoverage: 10, 
@@ -38,8 +38,8 @@ const fetchSatelliteImage = async (
       ],
     },
     output: {
-      width: 512,
-      height: 512,
+      width: 224,
+      height: 224,
       responses: [
         {
           identifier: "default",
@@ -50,7 +50,23 @@ const fetchSatelliteImage = async (
       ],
     },
     evalscript: `//VERSION=3
-        return [B04, B03, B02];`,
+function setup() {
+  return {
+    input: ["B02", "B03", "B04"],
+    output: { bands: 3 }
+  };
+}
+
+function evaluatePixel(sample) {
+  const minBrightness = 0.05; // threshold entre 0 e 1
+  const brightness = (sample.B02 + sample.B03 + sample.B04) / 3;
+
+  if (brightness < minBrightness) {
+    return [0, 0, 0]; // pixel escuro, retorna preto
+  }
+
+  return [sample.B04, sample.B03, sample.B02]; // RGB padrão
+}`
   };
 
   try {
