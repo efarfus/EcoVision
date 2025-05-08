@@ -172,3 +172,23 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     return
   }
 };
+
+export const deleteUser = async(req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try{
+    const { userId } = req.params
+
+    const deletedUser = await userRepository.deleteUser(userId)
+
+    if(!deletedUser){
+      res.status(404).json({message: "Usuário não encontrado"})
+      return
+    }
+
+    res.status(200).json({message: "Usuário deletado com sucesso: ", deletedUser})
+    return
+  } catch (error){
+    console.log("Erro ao deletar usuário: ", error)
+    res.status(500).json({message: "Um erro inesperado ocorreu: ", error})
+    return
+  }
+}
