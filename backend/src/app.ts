@@ -6,12 +6,15 @@ import dotenv from 'dotenv';
 import 'dotenv/config';
 import HttpError from './models/http-error';
 import usersRoutes from './routes/user-routes'
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger';
 
 dotenv.config();
 
 export const app = express();
 
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 app.use(bodyParser.json());

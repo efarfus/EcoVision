@@ -76,16 +76,9 @@ export const signupByEmail = async (req: Request, res: Response, next: NextFunct
 
 export const updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const userId = req.userId
-  const { name, password, updatedUserId, email } = req.body
-
-  console.log('\n\nupdatedUser: ', updatedUserId)
+  const { name, password, email } = req.body
 
   try{
-
-    if(!updatedUserId){
-      res.status(400).json({message: 'Invalid ID'})
-      return
-    }
 
     if(!userId){
       res.status(400).json({message: 'Invalid ID'})

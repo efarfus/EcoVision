@@ -1,0 +1,115 @@
+{
+	"Swagger OpenAPI GET Route": {
+		"prefix": "openapi-get",
+		"body": [
+			"/**",
+			" * @openapi",
+			" * /${1:users}:",
+			" *   get:",
+			" *     summary: ${2:Lista os usuários}",
+			" *     tags:",
+			" *       - ${3:User}",
+			" *     parameters:",
+			" *       - in: query",
+			" *         name: ${4:page}",
+			" *         required: false",
+			" *         schema:",
+			" *           type: integer",
+			" *         description: ${5:Número da página}",
+			" *     responses:",
+			" *       200:",
+			" *         description: ${6:Usuários retornados com sucesso}",
+			" *         content:",
+			" *           application/json:",
+			" *             schema:",
+			" *               type: object",
+			" *               properties:",
+			" *                 data:",
+			" *                   type: array",
+			" *                   items:",
+			" *                     $ref: '#/components/schemas/${7:User}'",
+			" */"
+		],
+		"description": "Swagger OpenAPI - GET route com parâmetros de query"
+	},
+
+
+	"Swagger OpenAPI POST Route": {
+		"prefix": "openapi-post",
+		"body": [
+			"/**",
+			" * @openapi",
+			" * /${1:users}:",
+			" *   post:",
+			" *     summary: ${2:Criar novo usuário}",
+			" *     tags:",
+			" *       - ${3:User}",
+			" *     requestBody:",
+			" *       required: true",
+			" *       content:",
+			" *         application/json:",
+			" *           schema:",
+			" *     responses:",
+			" *       201:",
+			" *         description: ${5:Usuário criado com sucesso}",
+			" */"
+		],
+		"description": "Swagger OpenAPI - POST route com corpo da requisição"
+	},
+
+	"Swagger OpenAPI PUT Route": {
+		"prefix": "openapi-put",
+		"body": [
+			"/**",
+			" * @openapi",
+			" * /${1:users}/{${2:id}}:",
+			" *   put:",
+			" *     summary: ${3:Atualiza um usuário existente}",
+			" *     tags:",
+			" *       - ${4:User}",
+			" *     parameters:",
+			" *       - in: path",
+			" *         name: ${2:id}",
+			" *         required: true",
+			" *         schema:",
+			" *           type: string",
+			" *         description: ID do usuário",
+			" *     requestBody:",
+			" *       required: true",
+			" *       content:",
+			" *         application/json:",
+			" *           schema:",
+			" *             $ref: '#/components/schemas/${5:UpdateUserInput}'",
+			" *     responses:",
+			" *       200:",
+			" *         description: ${6:Usuário atualizado com sucesso}",
+			" */"
+		],
+		"description": "Swagger OpenAPI - PUT route com path param e corpo"
+	},
+
+	"Swagger OpenAPI DELETE Route": {
+		"prefix": "openapi-delete",
+		"body": [
+			"/**",
+			" * @openapi",
+			" * /${1:users}/{${2:id}}:",
+			" *   delete:",
+			" *     summary: ${3:Remove um usuário}",
+			" *     tags:",
+			" *       - ${4:User}",
+			" *     parameters:",
+			" *       - in: path",
+			" *         name: ${2:id}",
+			" *         required: true",
+			" *         schema:",
+			" *           type: string",
+			" *         description: ID do usuário",
+			" *     responses:",
+			" *       204:",
+			" *         description: ${5:Usuário removido com sucesso}",
+			" */"
+		],
+		"description": "Swagger OpenAPI - DELETE route com path param"
+	}
+}
