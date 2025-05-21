@@ -1,0 +1,22 @@
+(dentro do diretorio onde "venv" está localizado)
+caso queira criar um novo (entre no diretorio raiz e digite):
+
+python -m venv venv
+
+
+depois selecione o interpretador:
+
+ctrl + shift + p 
+Python: select interpreter
+
+windows:
+
+.\venv\Scripts\activate
+
+
+linux:
+
+source venv/bin/activate
+
+
+# quando ativado aparecerá (venv) dentro do terminal

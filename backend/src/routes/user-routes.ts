@@ -21,4 +21,6 @@ router.post('/login', [
 
 router.put('/user/update', verifyToken, usersController.updateUser)
 
+router.delete('/user/:userId/delete', verifyToken, usersController.deleteUser)
+
 export default router;
