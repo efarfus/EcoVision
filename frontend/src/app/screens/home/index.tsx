@@ -5,6 +5,7 @@ import { Button, Image, Modal, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import fetchSatelliteImage from "../../services/get/getSentinelImages";
 import CoordsModal from "../../components/Modal";
+import { router } from "expo-router";
 
 export default function Home() {
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -24,9 +25,6 @@ export default function Home() {
     try {
       const img = await fetchSatelliteImage(coords.lng, coords.lat);
 
-      // Log a resposta completa antes de tentar decodificar
-      console.log("Resposta do fetch:", img);
-
       const imgString =
         typeof img === "string"
           ? img
@@ -38,16 +36,11 @@ export default function Home() {
         // Verifique a resposta
         try {
           const jsonResponse = JSON.parse(imgString); // Tenta analisar como JSON
-          console.log("Resposta JSON:", jsonResponse);
           setImageUri(null); // Se for erro, não tenta carregar imagem
         } catch (e) {
           // Caso não seja JSON, tenta a base64
           const base64Image = imgString.split(",")[1];
           if (base64Image && base64Image.length > 100) {
-            console.log(
-              "Imagem base64 (parcial):",
-              base64Image.substring(0, 100)
-            );
             setImageUri(`data:image/png;base64,${base64Image}`);
           } else {
             console.error("Base64 inválido ou muito curto");
@@ -106,7 +99,8 @@ export default function Home() {
         onClose={() => setModalVisible(false)}
         selectedCoords={selectedCoords ?? undefined}
         imageUri={imageUri ?? undefined}
-        onFavorite={() => console.log("Favoritar")}
+        onFavorite={() => router.push("/screens/favs")}
+        onAnalysis={() => router.push("/screens/analysis")}
       />
     </>
   );
