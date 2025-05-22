@@ -1,11 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import React, { useState } from "react";
-import { Button, Image, Modal, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Button,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { WebView } from "react-native-webview";
 import fetchSatelliteImage from "../../services/get/getSentinelImages";
 import CoordsModal from "../../components/Modal";
 import { router } from "expo-router";
+import firebase from "@react-native-firebase/app";
 
 export default function Home() {
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -14,6 +23,18 @@ export default function Home() {
   } | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (firebase.apps.length) {
+      Alert.alert(
+        "Firebase Conectado!",
+        "O Firebase SDK foi inicializado com sucesso."
+      );
+      console.log("Firebase SDK inicializado:", firebase.app().name);
+    } else {
+      Alert.alert("Erro Firebase", "O Firebase SDK não foi inicializado.");
+    }
+  }, []);
 
   const handleCoordinateSelected = async (coords: {
     lat: number;
