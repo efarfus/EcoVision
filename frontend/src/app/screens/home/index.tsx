@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button, Image, Modal, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import fetchSatelliteImage from "../../services/get/getSentinelImages";
+import ProfileScreen from "../profile/ProfileScreen";
 
 export default function Home() {
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -80,20 +81,16 @@ export default function Home() {
             headerShown: false,
           }}
         />
-        <Tab.Screen
-          name="Profile"
-          component={() => (
-            <View style={styles.container}>
-              <Text>Perfil</Text>
-            </View>
-          )}
+       <Tab.Screen
+         name="Profile"
+          component={ProfileScreen}
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
-            ),
-            headerShown: false,
-          }}
-        />
+          tabBarIcon: ({ color, size }) => (
+      <Ionicons name="person" size={size} color={color} />
+    ),
+    headerShown: false,
+  }}
+/>
       </Tab.Navigator>
 
       {/* ✅ Modal com as coordenadas clicadas */}
