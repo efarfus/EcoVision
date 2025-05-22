@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button, Image, Modal, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import fetchSatelliteImage from "../../services/get/getSentinelImages";
+import CoordsModal from "../../components/Modal";
 
 export default function Home() {
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -13,23 +14,26 @@ export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
 
-  const handleCoordinateSelected = async (coords: { lat: number; lng: number }) => {
+  const handleCoordinateSelected = async (coords: {
+    lat: number;
+    lng: number;
+  }) => {
     setSelectedCoords(coords);
     setModalVisible(true);
-  
+
     try {
       const img = await fetchSatelliteImage(coords.lng, coords.lat);
-  
+
       // Log a resposta completa antes de tentar decodificar
       console.log("Resposta do fetch:", img);
-  
+
       const imgString =
         typeof img === "string"
           ? img
           : img
           ? new TextDecoder().decode(img)
           : null;
-  
+
       if (imgString) {
         // Verifique a resposta
         try {
@@ -40,7 +44,10 @@ export default function Home() {
           // Caso não seja JSON, tenta a base64
           const base64Image = imgString.split(",")[1];
           if (base64Image && base64Image.length > 100) {
-            console.log("Imagem base64 (parcial):", base64Image.substring(0, 100));
+            console.log(
+              "Imagem base64 (parcial):",
+              base64Image.substring(0, 100)
+            );
             setImageUri(`data:image/png;base64,${base64Image}`);
           } else {
             console.error("Base64 inválido ou muito curto");
@@ -56,8 +63,6 @@ export default function Home() {
       setImageUri(null);
     }
   };
-  
-  
 
   return (
     <>
@@ -96,32 +101,13 @@ export default function Home() {
         />
       </Tab.Navigator>
 
-      {/* ✅ Modal com as coordenadas clicadas */}
-      <Modal
+      <CoordsModal
         visible={modalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Coordenadas Selecionadas</Text>
-            <Text>Latitude: {selectedCoords?.lat}</Text>
-            <Text>Longitude: {selectedCoords?.lng}</Text>
-
-            {imageUri ? (
-              <Image
-                source={{ uri: imageUri }}
-                style={{ width: 250, height: 250, marginVertical: 10 }}
-              />
-            ) : (
-              <Text>Carregando imagem de satélite...</Text>
-            )}
-
-            <Button title="Fechar" onPress={() => setModalVisible(false)} />
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setModalVisible(false)}
+        selectedCoords={selectedCoords ?? undefined}
+        imageUri={imageUri ?? undefined}
+        onFavorite={() => console.log("Favoritar")}
+      />
     </>
   );
 }
