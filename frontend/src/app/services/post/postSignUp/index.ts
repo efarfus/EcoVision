@@ -13,7 +13,6 @@ export const postSignUp = async (
       name: username,
     });
 
-    console.log('Enviou e recebeu response: ', response.data.token)
 
     await AsyncStorage.setItem("token", response.data.token);
 

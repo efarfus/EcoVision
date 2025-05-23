@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "896514486231",
+    "project_id": "ecovision-c6691",
+    "storage_bucket": "ecovision-c6691.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:896514486231:android:f50cdab613628a1c676592",
+        "android_client_info": {
+          "package_name": "com.anonymous.EcoVision"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrf2oXm-VmNyvnCox8pJTU769PnHwR1Xc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

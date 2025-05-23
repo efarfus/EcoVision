@@ -8,7 +8,7 @@ import { useState } from "react";
 import { postLogin } from "./services/post/postLogin";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
@@ -42,9 +42,9 @@ export default function Login() {
       ></Image>
       <View style={styles.line}></View>
       <TextInputLogin
-        placeholder="Username"
+        placeholder="Email"
         IconComponent={IconUser}
-        onChangeText={(text) => setUsername(text)}
+        onChangeText={(text) => setEmail(text)}
       ></TextInputLogin>
       <TextInputLogin
         placeholder="Password"

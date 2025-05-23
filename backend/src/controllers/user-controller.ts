@@ -48,16 +48,16 @@ export const signupByEmail = async (req: Request, res: Response, next: NextFunct
     
     const saltRounds = 10
 
-    const hashPassword = async (password: any) => {
+    /*const hashPassword = async (password: any) => {
       const hash = await bcrypt.hash(password, saltRounds);
       return hash;
     };
     
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(password);*/
 
     const createdUser = await userRepository.createUser(
       email,
-      hashedPassword,
+      password,
       name,
     );
 
@@ -76,16 +76,9 @@ export const signupByEmail = async (req: Request, res: Response, next: NextFunct
 
 export const updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const userId = req.userId
-  const { name, password, updatedUserId, email } = req.body
-
-  console.log('\n\nupdatedUser: ', updatedUserId)
+  const { name, password, email } = req.body
 
   try{
-
-    if(!updatedUserId){
-      res.status(400).json({message: 'Invalid ID'})
-      return
-    }
 
     if(!userId){
       res.status(400).json({message: 'Invalid ID'})
@@ -152,12 +145,12 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       return
     }
 
-    const isPasswordValid = await bcrypt.compare(password, identifiedUser.password);
+    /*const isPasswordValid = await bcrypt.compare(password, identifiedUser.password);
     console.log(isPasswordValid)
       if (!isPasswordValid) {
         res.status(401).send("Usuário não encontrado, verifique sua senha e email!")
         return
-      }
+      }*/
 
 
     const token = jwt.sign({ userId: identifiedUser.id }, process.env.JWT_SECRET as string, {
@@ -172,3 +165,23 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     return
   }
 };
+
+export const deleteUser = async(req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try{
+    const { userId } = req.params
+
+    const deletedUser = await userRepository.deleteUser(userId)
+
+    if(!deletedUser){
+      res.status(404).json({message: "Usuário não encontrado"})
+      return
+    }
+
+    res.status(200).json({message: "Usuário deletado com sucesso: ", deletedUser})
+    return
+  } catch (error){
+    console.log("Erro ao deletar usuário: ", error)
+    res.status(500).json({message: "Um erro inesperado ocorreu: ", error})
+    return
+  }
+}
