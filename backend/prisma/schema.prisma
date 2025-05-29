@@ -8,10 +8,20 @@ datasource db {
 }
 
 model User {
-  id        String    @unique @default(uuid())
-  email     String    @unique
+  id        String     @unique @default(uuid())
+  email     String     @unique
   name      String
   password  String
-  createdAt DateTime  @default(now())
+  createdAt DateTime   @default(now())
   updatedAt DateTime?
+  Favorite  Favorite[]
+}
+
+model Favorite {
+  id        String   @unique @default(uuid())
+  userId    String
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

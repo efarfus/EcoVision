@@ -1,0 +1,8 @@
+{
+  "include": [
+    "./backend/src/services"
+  ],
+  "extraPaths": [
+    "./venv/Lib/site-packages"
+  ]
+}

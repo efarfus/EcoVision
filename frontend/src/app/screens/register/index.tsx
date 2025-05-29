@@ -31,7 +31,7 @@ export default function Register() {
       console.log('response')
       if (response) {
         Alert.alert("Registrado com sucesso!");
-        router.push("/index");
+        router.push("/");
       }
     } catch (error) {
       alert("Erro ao registrar!");

@@ -1,10 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import React, { useState } from "react";
-import { Button, Image, Modal, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Button,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { WebView } from "react-native-webview";
 import fetchSatelliteImage from "../../services/get/getSentinelImages";
+import CoordsModal from "../../components/Modal";
+import { router } from "expo-router";
+//import firebase from "@react-native-firebase/app";
+
+import firebaseApp from '../../../firebase' // caminho relativo direto
+
+import { getAuth } from 'firebase/auth'
+import { getApps } from 'firebase/app';
 import ProfileScreen from "../profile/ProfileScreen";
+
+const auth = getAuth(firebaseApp)
 
 export default function Home() {
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -14,34 +32,46 @@ export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
 
-  const handleCoordinateSelected = async (coords: { lat: number; lng: number }) => {
+  useEffect(() => {
+  const apps = getApps();
+
+  if (apps.length > 0) {
+    Alert.alert(
+      'Firebase Conectado!',
+      'O Firebase SDK foi inicializado com sucesso.'
+    );
+    console.log('Firebase SDK inicializado:', apps[0].name);
+  } else {
+    Alert.alert('Erro Firebase', 'O Firebase SDK não foi inicializado.');
+  }
+}, []);
+
+  const handleCoordinateSelected = async (coords: {
+    lat: number;
+    lng: number;
+  }) => {
     setSelectedCoords(coords);
     setModalVisible(true);
-  
+
     try {
       const img = await fetchSatelliteImage(coords.lng, coords.lat);
-  
-      // Log a resposta completa antes de tentar decodificar
-      console.log("Resposta do fetch:", img);
-  
+
       const imgString =
         typeof img === "string"
           ? img
           : img
           ? new TextDecoder().decode(img)
           : null;
-  
+
       if (imgString) {
         // Verifique a resposta
         try {
           const jsonResponse = JSON.parse(imgString); // Tenta analisar como JSON
-          console.log("Resposta JSON:", jsonResponse);
           setImageUri(null); // Se for erro, não tenta carregar imagem
         } catch (e) {
           // Caso não seja JSON, tenta a base64
           const base64Image = imgString.split(",")[1];
           if (base64Image && base64Image.length > 100) {
-            console.log("Imagem base64 (parcial):", base64Image.substring(0, 100));
             setImageUri(`data:image/png;base64,${base64Image}`);
           } else {
             console.error("Base64 inválido ou muito curto");
@@ -57,8 +87,6 @@ export default function Home() {
       setImageUri(null);
     }
   };
-  
-  
 
   return (
     <>
@@ -93,32 +121,14 @@ export default function Home() {
 />
       </Tab.Navigator>
 
-      {/* ✅ Modal com as coordenadas clicadas */}
-      <Modal
+      <CoordsModal
         visible={modalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Coordenadas Selecionadas</Text>
-            <Text>Latitude: {selectedCoords?.lat}</Text>
-            <Text>Longitude: {selectedCoords?.lng}</Text>
-
-            {imageUri ? (
-              <Image
-                source={{ uri: imageUri }}
-                style={{ width: 250, height: 250, marginVertical: 10 }}
-              />
-            ) : (
-              <Text>Carregando imagem de satélite...</Text>
-            )}
-
-            <Button title="Fechar" onPress={() => setModalVisible(false)} />
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setModalVisible(false)}
+        selectedCoords={selectedCoords ?? undefined}
+        imageUri={imageUri ?? undefined}
+        onFavorite={() => router.push("/screens/favs")}
+        onAnalysis={() => router.push("/screens/analysis")}
+      />
     </>
   );
 }
