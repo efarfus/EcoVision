@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from "react-native";
+import { postFavs } from "../../services/post/PostFavs";
 
 interface CoordsModalProps {
   visible: boolean;
@@ -36,6 +37,21 @@ const CoordsModal = ({
   const handleFavorite = () => {
     setIsFavorite(!isFavorite);
     onFavorite?.();
+
+    const response = postFavs({
+      latitude: selectedCoords?.lat || 0,
+      longitude: selectedCoords?.lng || 0,
+      uri: imageUri || "",
+      createdAt: Date.now().toString(),
+    });
+
+    response
+      .then((res) => {
+        console.log("Favorito adicionado com sucesso:", res);
+      })
+      .catch((error) => {
+        console.error("Erro ao adicionar favorito:", error);
+      });
   };
 
   return (

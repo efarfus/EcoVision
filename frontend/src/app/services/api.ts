@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const api = axios.create({
   // Rotear com o celular e ver o ipv4 e adicionar abaixo
-  baseURL: "http://192.168.245.201:3000",
+  baseURL: "http://172.30.224.1:3000",
 });
 
 api.interceptors.request.use((config) => {
