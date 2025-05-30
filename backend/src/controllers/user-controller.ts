@@ -32,14 +32,14 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction):
 
 export const getUserIdByEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const {email} = req.body
+    const {email} = req.query
 
     if(!email){
       res.status(404).json({message: 'email ausente'})
       return
     }
 
-    const user = await userRepository.getUserByEmail(email);
+    const user = await userRepository.getUserByEmail(email as string);
 
     if(!user){
       res.status(404).json({message: 'usuario nao encontrado'})
