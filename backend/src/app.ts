@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import 'dotenv/config';
 import HttpError from './models/http-error';
 import usersRoutes from './routes/user-routes'
+import favoriteRoutes from './routes/favorites-routes'
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
 
@@ -36,3 +37,4 @@ app.use(cors({
 }));
 
 app.use('/', usersRoutes);
+app.use('/', favoriteRoutes);
