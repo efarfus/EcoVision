@@ -3,7 +3,7 @@ import 'dotenv/config'
 import bcrypt from 'bcrypt'
 import { PrismaClient } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
-import { FavoriteRepository } from 'src/repositories/favorites-repository';
+import { FavoriteRepository } from '../repositories/favorites-repository';
 
 const { validationResult } = require('express-validator');
 
