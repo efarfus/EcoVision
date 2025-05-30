@@ -2,23 +2,25 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet } from "react-native";
 
 interface BoxFavsProps {
-  title: string;
+  latitude: number;
+  longitude: number;
   description: string;
-  imageUrl: string;
+  uri: string;
   onPress: () => void;
 }
 
 export default function BoxFavs({
-  title,
+  latitude,
+  longitude,
   description,
-  imageUrl,
+  uri,
   onPress,
 }: BoxFavsProps) {
   return (
     <TouchableOpacity style={styles.boxContainer} onPress={onPress}>
-      <Image source={{ uri: imageUrl }} style={styles.image} />
+      <Image source={{ uri: uri }} style={styles.image} />
       <View style={styles.textContainer}>
-        <Text style={styles.titleText}>{title}</Text>
+        <Text style={styles.titleText}>{latitude + ", " + longitude}</Text>
         <Text style={styles.descriptionText}>{description}</Text>
       </View>
     </TouchableOpacity>

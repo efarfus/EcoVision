@@ -1,11 +1,59 @@
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import BoxFavs from "../../components/BoxFavs";
 import Toolbar from "../../components/Toolbar";
 import { router } from "expo-router";
+import { getFavs } from "../../services/get/getFavs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface Fav {
+  id: string;
+  description: string;
+  uri: string;
+  latitude: number;
+  longitude: number;
+}
 
 export default function Favs() {
-  const [favs, setFavs] = useState([]);
+  const [favs, setFavs] = useState<Fav[]>([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const favsData = [
+    {
+      id: "1",
+      description: "Salvo em 21/04/2025",
+      uri: "",
+      latitude: -21.513514512,
+      longitude: -51.2375464857,
+    },
+    {
+      id: "2",
+      description: "Salvo em 22/04/2025",
+      uri: "",
+      latitude: -21.54514512,
+      longitude: -51.2351544857,
+    },
+    {
+      id: "3",
+      description: "Salvo em 23/04/2025",
+      uri: "",
+      latitude: -21.5165514512,
+      longitude: -51.23514857,
+    },
+  ];
+
+  const fetchData = async () => {
+    try {
+      const response = await getFavs();
+      setFavs(response);
+      console.log("Dados de favoritos:", response);
+    } catch (error) {
+      console.error("Erro ao buscar favoritos:", error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -16,31 +64,22 @@ export default function Favs() {
         }}
       />
 
-      {/* fazer uma flatlist com os favs */}
-
-      <BoxFavs
-        description="Salvo em 21/04/2025"
-        imageUrl=""
-        title="-21.51514512, -51.234857"
-        onPress={() => {
-          router.push("/screens/favsDetails");
-        }}
-      />
-      <BoxFavs
-        description="Salvo em 21/04/2025"
-        imageUrl=""
-        title="-21.51514512, -51.234857"
-        onPress={() => {
-          router.push("/screens/favsDetails");
-        }}
-      />
-      <BoxFavs
-        description="Salvo em 21/04/2025"
-        imageUrl=""
-        title="-21.51514512, -51.234857"
-        onPress={() => {
-          router.push("/screens/favsDetails");
-        }}
+      <FlatList
+        style={{ width: "100%", marginLeft: 35 }}
+        data={favs}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <BoxFavs
+            description={item.description}
+            uri={item.uri}
+            latitude={item.latitude}
+            longitude={item.longitude}
+            onPress={() => {
+              AsyncStorage.setItem("favId", item.id);
+              router.push("/screens/favsDetails");
+            }}
+          />
+        )}
       />
     </View>
   );
