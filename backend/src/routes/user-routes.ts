@@ -7,7 +7,8 @@ const{ check } = require('express-validator')
 const router = express.Router();
 
 router.get('/users', usersController.getUsers);
-router.get('/user/token', verifyToken, usersController.getUserWithToken)
+router.get('/user/token', usersController.getUserWithToken)
+router.get('/user/email', usersController.getUserIdByEmail)
 
 router.post('/signup', [
   check('email').not().isEmpty().isEmail().normalizeEmail(),
@@ -19,8 +20,8 @@ router.post('/login', [
   check('password').isLength({ min: 6 })
 ], usersController.login);
 
-router.put('/user/update', verifyToken, usersController.updateUser)
+router.put('/user/update', usersController.updateUser)
 
-router.delete('/user/:userId/delete', verifyToken, usersController.deleteUser)
+router.delete('/user/:userId/delete', usersController.deleteUser)
 
 export default router;

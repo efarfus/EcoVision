@@ -30,6 +30,33 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction):
   }
 };
 
+export const getUserIdByEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const {email} = req.body
+
+    if(!email){
+      res.status(404).json({message: 'email ausente'})
+      return
+    }
+
+    const user = await userRepository.getUserByEmail(email);
+
+    if(!user){
+      res.status(404).json({message: 'usuario nao encontrado'})
+      return
+    }
+    
+    const userId = user.id
+
+    res.status(200).json({userId});
+    return
+  } catch (error) {
+    console.log("Erro ao localizar usuários: ", error)
+    res.status(500).send('Fetching users failed, please try again later.'); 
+    return
+  }
+};
+
 export const signupByEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -75,8 +102,8 @@ export const signupByEmail = async (req: Request, res: Response, next: NextFunct
 };
 
 export const updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const userId = req.userId
-  const { name, password, email } = req.body
+  //const userId = req.userId
+  const { name, password, email, userId } = req.body
 
   try{
 

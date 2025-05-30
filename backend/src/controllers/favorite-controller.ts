@@ -29,7 +29,8 @@ export const getCoordinate = async (req: Request, res: Response, next: NextFunct
 
 export const getAllFavoritedCoordinates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const userId = req.userId
+   // const userId = req.userId
+   const {userId} = req.body
 
     if(!userId){
     console.error("Usuário não autorizado!")
@@ -48,8 +49,8 @@ export const getAllFavoritedCoordinates = async (req: Request, res: Response, ne
 };
 
 export const addFavoriteCoordinate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { latitude, longitude} = req.body;
-  const userId = req.userId
+  const { latitude, longitude, userId } = req.body;
+  //const userId = req.userId
 
   if(!userId){
     console.error("Usuário não autorizado!")
