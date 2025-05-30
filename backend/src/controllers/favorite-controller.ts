@@ -48,7 +48,7 @@ export const getAllFavoritedCoordinates = async (req: Request, res: Response, ne
 };
 
 export const addFavoriteCoordinate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { latitude, longitude} = req.body;
+  const { latitude, longitude, uri } = req.body;
   const userId = req.userId
 
   if(!userId){
@@ -61,6 +61,7 @@ export const addFavoriteCoordinate = async (req: Request, res: Response, next: N
       userId,
       latitude,
       longitude,
+      uri,
     );
 
     res.status(201).json({message: 'Coordinate sucessfully added!'});
