@@ -133,7 +133,6 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     res.status(500).json({message: "An unexpected error has occured"})
     return
   }
-  
 }
 
 
