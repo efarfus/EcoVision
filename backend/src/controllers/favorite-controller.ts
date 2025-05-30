@@ -51,6 +51,8 @@ export const addFavoriteCoordinate = async (req: Request, res: Response, next: N
   const { latitude, longitude, uri } = req.body;
   const userId = req.userId
 
+  console.log(userId)
+
   if(!userId){
     console.error("Usuário não autorizado!")
     return
