@@ -16,10 +16,11 @@ import CoordsModal from "../../components/Modal";
 import { router } from "expo-router";
 //import firebase from "@react-native-firebase/app";
 
-import firebaseApp from '../../../firebase' // caminho relativo direto
+import firebaseApp from '../../../firebase' 
 
 import { getAuth } from 'firebase/auth'
 import { getApps } from 'firebase/app';
+import ProfileScreen from "../profile/ProfileScreen";
 
 const auth = getAuth(firebaseApp)
 
@@ -108,20 +109,16 @@ export default function Home() {
             headerShown: false,
           }}
         />
-        <Tab.Screen
-          name="Profile"
-          component={() => (
-            <View style={styles.container}>
-              <Text>Perfil</Text>
-            </View>
-          )}
+       <Tab.Screen
+         name="Profile"
+          component={ProfileScreen}
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
-            ),
-            headerShown: false,
-          }}
-        />
+          tabBarIcon: ({ color, size }) => (
+      <Ionicons name="person" size={size} color={color} />
+    ),
+    headerShown: false,
+  }}
+/>
       </Tab.Navigator>
 
       <CoordsModal
