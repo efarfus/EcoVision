@@ -14,7 +14,11 @@ import { WebView } from "react-native-webview";
 import fetchSatelliteImage from "../../services/get/getSentinelImages";
 import CoordsModal from "../../components/Modal";
 import { router } from "expo-router";
-// const auth = getAuth(firebaseApp)
+//import firebase from "@react-native-firebase/app";
+
+
+
+const auth = getAuth(firebaseApp)
 
 export default function Home() {
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -101,20 +105,16 @@ export default function Home() {
             headerShown: false,
           }}
         />
-        <Tab.Screen
-          name="Profile"
-          component={() => (
-            <View style={styles.container}>
-              <Text>Perfil</Text>
-            </View>
-          )}
+       <Tab.Screen
+         name="Profile"
+          component={ProfileScreen}
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
-            ),
-            headerShown: false,
-          }}
-        />
+          tabBarIcon: ({ color, size }) => (
+      <Ionicons name="person" size={size} color={color} />
+    ),
+    headerShown: false,
+  }}
+/>
       </Tab.Navigator>
 
       <CoordsModal

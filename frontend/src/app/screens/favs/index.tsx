@@ -66,7 +66,7 @@ export default function Favs() {
 
       <FlatList
         style={{ width: "100%", marginLeft: 35 }}
-        data={favs}
+        data={favsData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <BoxFavs

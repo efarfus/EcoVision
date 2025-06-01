@@ -3,7 +3,7 @@ import 'dotenv/config'
 import bcrypt from 'bcrypt'
 import { PrismaClient } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
-import { FavoriteRepository } from 'src/repositories/favorites-repository';
+import { FavoriteRepository } from '../repositories/favorites-repository';
 
 const { validationResult } = require('express-validator');
 
@@ -49,7 +49,7 @@ export const getAllFavoritedCoordinates = async (req: Request, res: Response, ne
 };
 
 export const addFavoriteCoordinate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { latitude, longitude, userId } = req.body;
+  const { latitude, longitude, userId, uri } = req.body;
   //const userId = req.userId
 
   if(!userId){
@@ -62,6 +62,7 @@ export const addFavoriteCoordinate = async (req: Request, res: Response, next: N
       userId,
       latitude,
       longitude,
+      uri,
     );
 
     res.status(201).json({message: 'Coordinate sucessfully added!'});
