@@ -6,6 +6,9 @@ import Button from "./components/Button";
 import { router } from "expo-router";
 import { useState } from "react";
 import { postLogin } from "./services/post/postLogin";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import { getIdByEmail } from "./services/get/getIdByEmail";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -21,6 +24,14 @@ export default function Login() {
       const response = await postLogin({ email: email, password });
       if (response) {
         Alert.alert("Logado com sucesso!");
+
+        const getId = await getIdByEmail(email);
+        if (getId) {
+          console.log("ID do usuário:", getId.userId.toString());
+          AsyncStorage.setItem("userId", getId.userId.toString());
+        } else {
+          console.error("Erro ao obter ID do usuário");
+        }
         router.push("/screens/home");
       }
     } catch (error) {

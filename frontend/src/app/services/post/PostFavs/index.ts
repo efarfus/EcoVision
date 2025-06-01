@@ -5,21 +5,34 @@ type PostFavsData = {
   latitude: number;
   longitude: number;
   uri: string;
-  createdAt: string;
+  userId?: string;
+};
+
+const getUserId = async () => {
+  try {
+    const userId = await AsyncStorage.getItem("userId");
+    if (userId) {
+      return userId;
+    } else {
+      throw new Error("User ID not found in storage");
+    }
+  } catch (error) {
+    console.error("Error retrieving user ID:", error);
+    throw error;
+  }
 };
 
 export const postFavs = async ({
   latitude,
   longitude,
-  createdAt,
   uri,
 }: PostFavsData) => {
   try {
     const response = await api.post(`/addFavorite`, {
       latitude,
       longitude,
-      createdAt,
       uri,
+      getUserId
     });
 
     return response.data;
