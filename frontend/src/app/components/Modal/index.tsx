@@ -42,7 +42,6 @@ const CoordsModal = ({
       latitude: selectedCoords?.lat || 0,
       longitude: selectedCoords?.lng || 0,
       uri: imageUri || "",
-      createdAt: Date.now().toString(),
     });
 
     response

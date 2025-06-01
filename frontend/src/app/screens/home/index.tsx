@@ -14,14 +14,7 @@ import { WebView } from "react-native-webview";
 import fetchSatelliteImage from "../../services/get/getSentinelImages";
 import CoordsModal from "../../components/Modal";
 import { router } from "expo-router";
-//import firebase from "@react-native-firebase/app";
-
-import firebaseApp from '../../../firebase' // caminho relativo direto
-
-import { getAuth } from 'firebase/auth'
-import { getApps } from 'firebase/app';
-
-const auth = getAuth(firebaseApp)
+// const auth = getAuth(firebaseApp)
 
 export default function Home() {
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -31,19 +24,19 @@ export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
 
-  useEffect(() => {
-  const apps = getApps();
+//   useEffect(() => {
+//   const apps = getApps();
 
-  if (apps.length > 0) {
-    Alert.alert(
-      'Firebase Conectado!',
-      'O Firebase SDK foi inicializado com sucesso.'
-    );
-    console.log('Firebase SDK inicializado:', apps[0].name);
-  } else {
-    Alert.alert('Erro Firebase', 'O Firebase SDK não foi inicializado.');
-  }
-}, []);
+//   if (apps.length > 0) {
+//     Alert.alert(
+//       'Firebase Conectado!',
+//       'O Firebase SDK foi inicializado com sucesso.'
+//     );
+//     console.log('Firebase SDK inicializado:', apps[0].name);
+//   } else {
+//     Alert.alert('Erro Firebase', 'O Firebase SDK não foi inicializado.');
+//   }
+// }, []);
 
   const handleCoordinateSelected = async (coords: {
     lat: number;
