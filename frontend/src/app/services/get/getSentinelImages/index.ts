@@ -6,7 +6,7 @@ const fetchSatelliteImage = async (
 ): Promise<string | ArrayBuffer | null> => {
   const token = await getAccessToken();
 
-  const buffer = 0.3; // Definir o buffer de 1km
+  const buffer = 0.1; // Definir o buffer de 1km
   const polygonCoordinates = [
     [longitude - buffer, latitude - buffer],
     [longitude + buffer, latitude - buffer],
