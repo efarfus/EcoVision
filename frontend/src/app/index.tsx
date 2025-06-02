@@ -6,25 +6,33 @@ import Button from "./components/Button";
 import { router } from "expo-router";
 import { useState } from "react";
 import { postLogin } from "./services/post/postLogin";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import { getIdByEmail } from "./services/get/getIdByEmail";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    // if (!username || !password) {
-    //   alert("Todos os campos são obrigatórios!");
-    //   return;
-    // }
+    if (!email || !password) {
+      alert("Todos os campos são obrigatórios!");
+      return;
+    }
 
     try {
-      router.push("/screens/home");
+      const response = await postLogin({ email: email, password });
+      if (response) {
+        Alert.alert("Logado com sucesso!");
 
-      // const response = await postLogin({ email: username, password });
-      // if (response) {
-      //   Alert.alert("Logado com sucesso!");
-      //   router.push("/screens/home");
-      // }
+        const getId = await getIdByEmail(email);
+        if (getId) {
+          AsyncStorage.setItem("userId", getId.userId.toString());
+        } else {
+          console.error("Erro ao obter ID do usuário");
+        }
+        router.push("/screens/home");
+      }
     } catch (error) {
       alert("Erro ao logar!");
     }

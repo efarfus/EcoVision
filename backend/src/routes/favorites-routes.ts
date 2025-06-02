@@ -4,11 +4,11 @@ import { verifyToken } from '../middleware/token-validation-middleware';
 
 const router = express.Router();
 
-router.get('/getAllCoordinates', verifyToken, favoriteController.getAllFavoritedCoordinates);
-router.get('/getCoordinate/:id', verifyToken, favoriteController.getCoordinate)
+router.get('/getAllCoordinates', favoriteController.getAllFavoritedCoordinates);
+router.get('/getCoordinate/:id', favoriteController.getCoordinate)
 
-router.post('/addFavorite', verifyToken, favoriteController.addFavoriteCoordinate);
+router.post('/addFavorite', favoriteController.addFavoriteCoordinate);
 
-router.delete('/favoriteCoordinate/:id/delete', verifyToken, favoriteController.deleteFvorite)
+router.delete('/favoriteCoordinate/:id/delete', favoriteController.deleteFvorite)
 
 export default router;

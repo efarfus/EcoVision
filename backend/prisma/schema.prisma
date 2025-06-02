@@ -23,5 +23,6 @@ model Favorite {
   latitude  Float
   longitude Float
   createdAt DateTime @default(now())
+  uri       String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -87,6 +87,7 @@
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: Coordinate successfully added!!
  *       401:
  *         description: Usuário não autorizado
  *       500:

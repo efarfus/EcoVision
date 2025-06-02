@@ -3,7 +3,7 @@ import {
   IconStar,
   IconStarFilled,
 } from "@tabler/icons-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   View,
@@ -13,6 +13,9 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from "react-native";
+import { postFavs } from "../../services/post/PostFavs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 interface CoordsModalProps {
   visible: boolean;
@@ -32,10 +35,52 @@ const CoordsModal = ({
   onAnalysis,
 }: CoordsModalProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const id = await getUserId();
+        setUserId(id);
+      } catch (error) {
+        setUserId(null);
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  const getUserId = async () => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        return userId;
+      } else {
+        throw new Error("User ID not found in storage");
+      }
+    } catch (error) {
+      console.error("Error retrieving user ID:", error);
+      throw error;
+    }
+  };
 
   const handleFavorite = () => {
     setIsFavorite(!isFavorite);
     onFavorite?.();
+    console.log("Coordenadas favoritas:", userId);
+    const response = postFavs({
+      latitude: selectedCoords?.lat || 0,
+      longitude: selectedCoords?.lng || 0,
+      uri: imageUri || "",
+      userId: userId || "",
+    });
+
+    response
+      .then((res) => {
+        console.log("Favorito adicionado com sucesso:", res);
+      })
+      .catch((error) => {
+        console.error("Erro ao adicionar favorito:", error);
+      });
   };
 
   return (

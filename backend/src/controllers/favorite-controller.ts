@@ -3,7 +3,7 @@ import 'dotenv/config'
 import bcrypt from 'bcrypt'
 import { PrismaClient } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
-import { FavoriteRepository } from 'src/repositories/favorites-repository';
+import { FavoriteRepository } from '../repositories/favorites-repository';
 
 const { validationResult } = require('express-validator');
 
@@ -29,27 +29,28 @@ export const getCoordinate = async (req: Request, res: Response, next: NextFunct
 
 export const getAllFavoritedCoordinates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const userId = req.userId
+    const { userId } = req.query; // <--- LEIA DAQUI!
 
-    if(!userId){
-    console.error("Usuário não autorizado!")
-    return
-  }
+    if (!userId) {
+      console.error("Usuário não autorizado: userId ausente na query.");
+      // AGORA VAI ENVIAR UMA RESPOSTA DE ERRO!
+      res.status(400).json({ message: "Usuário não autorizado! O userId é obrigatório como parâmetro de query." });
+      return;
+    }
 
-    const coordinates = await favoriteRepository.getFavoriteByUserId(userId)
-
+    const coordinates = await favoriteRepository.getFavoriteByUserId(userId as string);
     res.status(200).json({coordinates});
-    return
+    return;
   } catch (error) {
-    console.log("Erro ao localizar coordenadas: ", error)
+    console.log("Erro ao localizar coordenadas: ", error);
     res.status(500).send('Fetching coordinates failed, please try again later.'); 
-    return
+    return;
   }
 };
 
 export const addFavoriteCoordinate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { latitude, longitude} = req.body;
-  const userId = req.userId
+  const { latitude, longitude, userId, uri } = req.body;
+  //const userId = req.userId
 
   if(!userId){
     console.error("Usuário não autorizado!")
@@ -61,6 +62,7 @@ export const addFavoriteCoordinate = async (req: Request, res: Response, next: N
       userId,
       latitude,
       longitude,
+      uri,
     );
 
     res.status(201).json({message: 'Coordinate sucessfully added!'});

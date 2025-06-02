@@ -5,12 +5,13 @@ const prisma = new PrismaClient({
 });
 
 export class FavoriteRepository {
-  async createFavorite(userId: string, latitude: number, longitude: number): Promise<Favorite> {
+  async createFavorite(userId: string, latitude: number, longitude: number, uri: string): Promise<Favorite> {
     return prisma.favorite.create({
       data: {
         userId,
         latitude,
         longitude,
+        uri
       },
     });
   }
