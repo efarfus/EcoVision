@@ -20,22 +20,22 @@ export default function Login() {
       return;
     }
 
-    try {
-      const response = await postLogin({ email: email, password });
-      if (response) {
-        Alert.alert("Logado com sucesso!");
+    // try {
+      // const response = await postLogin({ email: email, password });
+      // if (response) {
+      //   Alert.alert("Logado com sucesso!");
 
-        const getId = await getIdByEmail(email);
-        if (getId) {
-          AsyncStorage.setItem("userId", getId.userId.toString());
-        } else {
-          console.error("Erro ao obter ID do usuário");
-        }
+      //   const getId = await getIdByEmail(email);
+      //   if (getId) {
+      //     AsyncStorage.setItem("userId", getId.userId.toString());
+      //   } else {
+      //     console.error("Erro ao obter ID do usuário");
+      //   }
         router.push("/screens/home");
-      }
-    } catch (error) {
-      alert("Erro ao logar!");
-    }
+      // }
+    // } catch (error) {
+    //   alert("Erro ao logar!");
+    // }
   };
 
   return (

@@ -1,3 +1,14 @@
-scikit_learn==1.6.1
-pandas==2.2.3
-flask==3.1.1
+# Framework da API Web
+flask==3.0.3
+
+# Inteligência Artificial e Machine Learning
+tensorflow==2.15.0
+scikit-learn==1.5.0
+pandas==2.2.2
+
+# Manipulação de Imagens e Arrays
+numpy==1.26.4
+Pillow==10.3.0
+
+# Servidor de Produção para a API
+gunicorn==22.0.0
