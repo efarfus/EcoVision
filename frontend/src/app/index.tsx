@@ -27,7 +27,6 @@ export default function Login() {
 
         const getId = await getIdByEmail(email);
         if (getId) {
-          console.log("ID do usuário:", getId.userId.toString());
           AsyncStorage.setItem("userId", getId.userId.toString());
         } else {
           console.error("Erro ao obter ID do usuário");

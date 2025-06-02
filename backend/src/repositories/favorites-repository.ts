@@ -11,7 +11,7 @@ export class FavoriteRepository {
         userId,
         latitude,
         longitude,
-        uri,
+        uri
       },
     });
   }

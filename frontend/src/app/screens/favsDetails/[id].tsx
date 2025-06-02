@@ -10,126 +10,89 @@ import {
 } from "react-native";
 import Toolbar from "../../components/Toolbar";
 import { router, useLocalSearchParams } from "expo-router";
+import { getFavsById } from "../../services/get/getFavsById";
 
-interface AnalysisScreenParams {
-  latitude: string;
-  longitude: string;
-  imageUri: string;
+interface FavoriteDetails {
+  createdAt: string;
+  latitude: number;
+  longitude: number;
+  uri: string;
 }
-
 const YEARS = [2000, 2005, 2010, 2015, 2020];
 
-export default function AnalysisScreen() {
-  const params = useLocalSearchParams();
+export default function FavsDetails() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [favsDetails, setFavsDetails] = useState<FavoriteDetails | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [initialLatitude, setInitialLatitude] = useState<number | null>(null);
-  const [initialLongitude, setInitialLongitude] = useState<number | null>(null);
-  const [mainImageDisplayUri, setMainImageDisplayUri] = useState<string | null>(
-    null
-  );
   const [mainBinaryImage, setMainBinaryImage] = useState(
     "Carregando dados binários..."
   );
-
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [comparisonImage, setComparisonImage] = useState<{
     uri: string;
     binary: string;
   } | null>(null);
   const [isComparisonLoading, setIsComparisonLoading] = useState(false);
-  const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
 
   useEffect(() => {
-    if (params.latitude && params.longitude && params.imageUri) {
-      try {
-        const latitude =
-          typeof params.latitude === "string"
-            ? params.latitude
-            : params.latitude[0];
-        const longitude =
-          typeof params.longitude === "string"
-            ? params.longitude
-            : params.longitude[0];
-        const imageUri =
-          typeof params.imageUri === "string"
-            ? params.imageUri
-            : params.imageUri[0];
-
-        setInitialLatitude(parseFloat(latitude));
-        setInitialLongitude(parseFloat(longitude));
-        setMainImageDisplayUri(imageUri);
-        setMainBinaryImage(
-          "dados da imagem de satélite principal (recebidos/simulados)"
-        );
-        setIsLoadingInitialData(false);
-      } catch (error) {
-        console.error("Erro ao processar parâmetros da rota:", error);
-        setIsLoadingInitialData(false);
-      }
+    if (id) {
+      const fetchData = async () => {
+        try {
+          const response = await getFavsById(id);
+          if (response && response.coordinates) {
+            setFavsDetails(response.coordinates);
+            setMainBinaryImage("dados da imagem de satélite principal");
+          } else {
+            console.error("Nenhum dado encontrado para o ID:", id);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar detalhes:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
     } else {
-      console.warn(
-        "Parâmetros necessários (latitude, longitude, imageUri) não foram recebidos para a tela de Análise."
-      );
-      setIsLoadingInitialData(false);
+      setLoading(false);
     }
-  }, [params]); // Re-executa se os params mudarem
+  }, [id]);
 
   const handleGoBack = () => {
     router.back();
   };
 
   const handleYearSelect = async (year: number) => {
-    if (selectedYear === year) return; // Não faz nada se o mesmo ano for clicado
-    if (!initialLatitude || !initialLongitude) {
-      console.warn(
-        "Coordenadas iniciais não disponíveis para buscar dados anuais."
-      );
-      return;
-    }
+    if (selectedYear === year) return;
 
     setSelectedYear(year);
     setIsComparisonLoading(true);
-    setComparisonImage(null); // Limpa a imagem anterior
+    setComparisonImage(null);
 
-    // --- PONTO DE INTEGRAÇÃO DA SUA API DE IA ---
-    // Aqui você faria a chamada para a sua API de IA, passando o 'year',
-    // 'initialLatitude' e 'initialLongitude'.
-    console.log(
-      `Simulando busca para o ano ${year} com coordenadas: Lat ${initialLatitude}, Lng ${initialLongitude}`
-    );
+    console.log(`Simulando busca para o ano ${year}...`);
     setTimeout(() => {
       setComparisonImage({
-        uri: `https://picsum.photos/400/300?random=${year}`, // Imagem de placeholder
-        binary: `Imagem binária para o ano ${year} (dados da sua IA aqui)`,
+        uri: `https://picsum.photos/400/300?random=${year}`,
+        binary: `Imagem binária para o ano ${year}`,
       });
       setIsComparisonLoading(false);
-    }, 1500); // Simula 1.5s de delay da rede
+    }, 1500);
   };
 
-  // Renderização de loading para os dados iniciais
-  if (isLoadingInitialData) {
+  if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Carregando dados para análise...</Text>
       </View>
     );
   }
 
-  // Se os dados iniciais essenciais não foram carregados (ex: faltaram params)
-  if (
-    initialLatitude === null ||
-    initialLongitude === null ||
-    !mainImageDisplayUri
-  ) {
+  if (!favsDetails) {
     return (
       <View style={styles.container}>
-        <Toolbar title="Erro na Análise" onPress={handleGoBack} />
+        <Toolbar title="Erro" onPress={handleGoBack} />
         <View style={styles.centered}>
-          <Text>
-            Não foi possível carregar os dados necessários para a análise.
-          </Text>
-          <Text>Verifique se os parâmetros foram passados corretamente.</Text>
+          <Text>Não foi possível carregar os detalhes.</Text>
         </View>
       </View>
     );
@@ -137,31 +100,28 @@ export default function AnalysisScreen() {
 
   return (
     <View style={styles.container}>
-      <Toolbar title="Análise de Imagem" onPress={handleGoBack} />
+      <Toolbar title="Detalhes" onPress={handleGoBack} />
       <ScrollView
         style={styles.contentContainer}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Detalhes Iniciais (vindos dos parâmetros) */}
         <Text style={styles.detailText}>
-          Coordenadas da imagem: {initialLatitude}, {initialLongitude}
+          Coordenadas da imagem: {favsDetails.latitude}, {favsDetails.longitude}
         </Text>
-        <Image
-          source={{ uri: mainImageDisplayUri }}
-          style={styles.detailImage}
-        />
+        <Text style={styles.detailText}>
+          Favoritado em:{" "}
+          {new Date(favsDetails.createdAt).toLocaleDateString("pt-BR")}
+        </Text>
+        <Image source={{ uri: favsDetails.uri }} style={styles.detailImage} />
 
         <Text style={styles.sectionTitle}>
-          Imagem Binária da Foto de Satélite Principal
+          Imagem Binária da Foto de Satélite
         </Text>
         <View style={styles.binaryContainer}>
           <Text style={styles.binaryText} selectable>
             {mainBinaryImage}
           </Text>
-          <Image
-            source={{ uri: mainImageDisplayUri }}
-            style={styles.detailImage}
-          />
+          <Image source={{ uri: favsDetails.uri }} style={styles.detailImage} />
         </View>
 
         <Text style={styles.sectionTitle}>
@@ -214,7 +174,7 @@ export default function AnalysisScreen() {
                     <Image
                       source={{ uri: comparisonImage.uri }}
                       style={styles.detailImage}
-                    />
+                    ></Image>
                   </View>
                 </>
               )
@@ -235,7 +195,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
   },
   contentContainer: {
     flex: 1,
@@ -268,7 +227,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     minHeight: 80,
     justifyContent: "center",
-    marginBottom: 10,
   },
   binaryText: {
     fontFamily: "monospace",
@@ -287,8 +245,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#e9e9e9",
     borderRadius: 20,
     marginVertical: 5,
-    minWidth: "18%",
-    alignItems: "center",
   },
   selectedYearButton: {
     backgroundColor: "#007AFF",

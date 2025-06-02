@@ -14,11 +14,8 @@ import { WebView } from "react-native-webview";
 import fetchSatelliteImage from "../../services/get/getSentinelImages";
 import CoordsModal from "../../components/Modal";
 import { router } from "expo-router";
+import ProfileScreen from "../../components/Profile";
 //import firebase from "@react-native-firebase/app";
-
-
-
-const auth = getAuth(firebaseApp)
 
 export default function Home() {
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -28,19 +25,19 @@ export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
 
-//   useEffect(() => {
-//   const apps = getApps();
+  //   useEffect(() => {
+  //   const apps = getApps();
 
-//   if (apps.length > 0) {
-//     Alert.alert(
-//       'Firebase Conectado!',
-//       'O Firebase SDK foi inicializado com sucesso.'
-//     );
-//     console.log('Firebase SDK inicializado:', apps[0].name);
-//   } else {
-//     Alert.alert('Erro Firebase', 'O Firebase SDK não foi inicializado.');
-//   }
-// }, []);
+  //   if (apps.length > 0) {
+  //     Alert.alert(
+  //       'Firebase Conectado!',
+  //       'O Firebase SDK foi inicializado com sucesso.'
+  //     );
+  //     console.log('Firebase SDK inicializado:', apps[0].name);
+  //   } else {
+  //     Alert.alert('Erro Firebase', 'O Firebase SDK não foi inicializado.');
+  //   }
+  // }, []);
 
   const handleCoordinateSelected = async (coords: {
     lat: number;
@@ -84,6 +81,23 @@ export default function Home() {
     }
   };
 
+  const handleAnalysisPress = () => {
+    if (selectedCoords && imageUri) {
+      // Certifique-se de que tem os dados
+      router.push({
+        pathname: "/screens/analysis",
+        params: {
+          latitude: selectedCoords.lat.toString(),
+          longitude: selectedCoords.lng.toString(),
+          imageUri: imageUri,
+        },
+      });
+    } else {
+      console.error("Dados insuficientes para iniciar a análise.");
+      // Talvez mostrar um alerta para o usuário
+    }
+  };
+
   return (
     <>
       <Tab.Navigator
@@ -105,16 +119,16 @@ export default function Home() {
             headerShown: false,
           }}
         />
-       <Tab.Screen
-         name="Profile"
+        <Tab.Screen
+          name="Profile"
           component={ProfileScreen}
           options={{
-          tabBarIcon: ({ color, size }) => (
-      <Ionicons name="person" size={size} color={color} />
-    ),
-    headerShown: false,
-  }}
-/>
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" size={size} color={color} />
+            ),
+            headerShown: false,
+          }}
+        />
       </Tab.Navigator>
 
       <CoordsModal
@@ -123,7 +137,7 @@ export default function Home() {
         selectedCoords={selectedCoords ?? undefined}
         imageUri={imageUri ?? undefined}
         onFavorite={() => router.push("/screens/favs")}
-        onAnalysis={() => router.push("/screens/analysis")}
+        onAnalysis={handleAnalysisPress}
       />
     </>
   );
