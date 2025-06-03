@@ -10,126 +10,108 @@ import {
 } from "react-native";
 import Toolbar from "../../components/Toolbar";
 import { router, useLocalSearchParams } from "expo-router";
-
-interface AnalysisScreenParams {
-  latitude: string;
-  longitude: string;
-  imageUri: string;
-}
+import { postImage } from "../../servicesIA/post";
 
 const YEARS = [2000, 2005, 2010, 2015, 2020];
 
 export default function AnalysisScreen() {
   const params = useLocalSearchParams();
-
   const [initialLatitude, setInitialLatitude] = useState<number | null>(null);
   const [initialLongitude, setInitialLongitude] = useState<number | null>(null);
   const [mainImageDisplayUri, setMainImageDisplayUri] = useState<string | null>(
     null
   );
-  const [mainBinaryImage, setMainBinaryImage] = useState(
-    "Carregando dados binários..."
-  );
-
+  const [mainMaskUri, setMainMaskUri] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [comparisonImage, setComparisonImage] = useState<{
-    uri: string;
-    binary: string;
+    satelliteUri: string;
+    maskUri: string;
   } | null>(null);
   const [isComparisonLoading, setIsComparisonLoading] = useState(false);
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
 
   useEffect(() => {
-    if (params.latitude && params.longitude && params.imageUri) {
-      try {
-        const latitude =
-          typeof params.latitude === "string"
-            ? params.latitude
-            : params.latitude[0];
-        const longitude =
-          typeof params.longitude === "string"
-            ? params.longitude
-            : params.longitude[0];
-        const imageUri =
-          typeof params.imageUri === "string"
-            ? params.imageUri
-            : params.imageUri[0];
+    const fetchInitialData = async () => {
+      if (params.latitude && params.longitude && params.imageUri) {
+        try {
+          const imageUri =
+            typeof params.imageUri === "string"
+              ? params.imageUri
+              : params.imageUri[0];
 
-        setInitialLatitude(parseFloat(latitude));
-        setInitialLongitude(parseFloat(longitude));
-        setMainImageDisplayUri(imageUri);
-        setMainBinaryImage(
-          "dados da imagem de satélite principal (recebidos/simulados)"
-        );
-        setIsLoadingInitialData(false);
-      } catch (error) {
-        console.error("Erro ao processar parâmetros da rota:", error);
+          setInitialLatitude(parseFloat(params.latitude as string));
+          setInitialLongitude(parseFloat(params.longitude as string));
+          setMainImageDisplayUri(imageUri);
+
+          const result = await postImage(imageUri);
+          if (result.mask_base64) {
+            console.log("RESPOSTA COMPLETA RECEBIDA PELA API:", result);
+            setMainMaskUri(`data:image/png;base64,${result.mask_base64}`);
+          }
+        } catch (error) {
+          console.error(
+            "Erro ao processar dados iniciais ou chamar API:",
+            error
+          );
+        } finally {
+          setIsLoadingInitialData(false);
+        }
+      } else {
+        console.warn("Parâmetros necessários não foram recebidos.");
         setIsLoadingInitialData(false);
       }
-    } else {
-      console.warn(
-        "Parâmetros necessários (latitude, longitude, imageUri) não foram recebidos para a tela de Análise."
-      );
-      setIsLoadingInitialData(false);
-    }
-  }, [params]); // Re-executa se os params mudarem
+    };
+
+    fetchInitialData();
+  }, [params]);
 
   const handleGoBack = () => {
     router.back();
   };
 
   const handleYearSelect = async (year: number) => {
-    if (selectedYear === year) return; // Não faz nada se o mesmo ano for clicado
-    if (!initialLatitude || !initialLongitude) {
-      console.warn(
-        "Coordenadas iniciais não disponíveis para buscar dados anuais."
-      );
-      return;
-    }
+    if (selectedYear === year || isComparisonLoading) return;
+    if (!initialLatitude || !initialLongitude) return;
 
     setSelectedYear(year);
     setIsComparisonLoading(true);
-    setComparisonImage(null); // Limpa a imagem anterior
+    setComparisonImage(null);
 
-    // --- PONTO DE INTEGRAÇÃO DA SUA API DE IA ---
-    // Aqui você faria a chamada para a sua API de IA, passando o 'year',
-    // 'initialLatitude' e 'initialLongitude'.
-    console.log(
-      `Simulando busca para o ano ${year} com coordenadas: Lat ${initialLatitude}, Lng ${initialLongitude}`
-    );
-    setTimeout(() => {
-      setComparisonImage({
-        uri: `https://picsum.photos/400/300?random=${year}`, // Imagem de placeholder
-        binary: `Imagem binária para o ano ${year} (dados da sua IA aqui)`,
-      });
+    try {
+      console.log(`Buscando imagem de satélite para ${year}`);
+      const newSatelliteImageUri = `https://picsum.photos/400/300?random=${year}`;
+
+      console.log(`Enviando imagem de ${year} para análise`);
+      const result = await postImage(newSatelliteImageUri);
+
+      if (result.mask_base64) {
+        setComparisonImage({
+          satelliteUri: newSatelliteImageUri,
+          maskUri: `data:image/png;base64,${result.mask_base64}`,
+        });
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar dados para o ano ${year}:`, error);
+    } finally {
       setIsComparisonLoading(false);
-    }, 1500); // Simula 1.5s de delay da rede
+    }
   };
 
-  // Renderização de loading para os dados iniciais
   if (isLoadingInitialData) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Carregando dados para análise...</Text>
+        <Text>Analisando imagem inicial...</Text>
       </View>
     );
   }
 
-  // Se os dados iniciais essenciais não foram carregados (ex: faltaram params)
-  if (
-    initialLatitude === null ||
-    initialLongitude === null ||
-    !mainImageDisplayUri
-  ) {
+  if (!mainImageDisplayUri) {
     return (
       <View style={styles.container}>
         <Toolbar title="Erro na Análise" onPress={handleGoBack} />
         <View style={styles.centered}>
-          <Text>
-            Não foi possível carregar os dados necessários para a análise.
-          </Text>
-          <Text>Verifique se os parâmetros foram passados corretamente.</Text>
+          <Text>Não foi possível carregar os dados.</Text>
         </View>
       </View>
     );
@@ -142,27 +124,20 @@ export default function AnalysisScreen() {
         style={styles.contentContainer}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Detalhes Iniciais (vindos dos parâmetros) */}
         <Text style={styles.detailText}>
-          Coordenadas da imagem: {initialLatitude}, {initialLongitude}
+          Coordenadas: {initialLatitude}, {initialLongitude}
         </Text>
         <Image
           source={{ uri: mainImageDisplayUri }}
           style={styles.detailImage}
         />
 
-        <Text style={styles.sectionTitle}>
-          Imagem Binária da Foto de Satélite Principal
-        </Text>
-        <View style={styles.binaryContainer}>
-          <Text style={styles.binaryText} selectable>
-            {mainBinaryImage}
-          </Text>
-          <Image
-            source={{ uri: mainImageDisplayUri }}
-            style={styles.detailImage}
-          />
-        </View>
+        <Text style={styles.sectionTitle}>Máscara da Imagem Principal</Text>
+        {mainMaskUri ? (
+          <Image source={{ uri: mainMaskUri }} style={styles.detailImage} />
+        ) : (
+          <Text>Máscara não disponível.</Text>
+        )}
 
         <Text style={styles.sectionTitle}>
           Selecione um ano para comparação
@@ -200,22 +175,20 @@ export default function AnalysisScreen() {
             ) : (
               comparisonImage && (
                 <>
+                  <Text style={styles.sectionTitle}>
+                    Comparação com {selectedYear}
+                  </Text>
                   <Image
-                    source={{ uri: comparisonImage.uri }}
+                    source={{ uri: comparisonImage.satelliteUri }}
                     style={styles.detailImage}
                   />
                   <Text style={styles.sectionTitle}>
-                    Imagem Binária de {selectedYear}
+                    Máscara de {selectedYear}
                   </Text>
-                  <View style={styles.binaryContainer}>
-                    <Text style={styles.binaryText} selectable>
-                      {comparisonImage.binary}
-                    </Text>
-                    <Image
-                      source={{ uri: comparisonImage.uri }}
-                      style={styles.detailImage}
-                    />
-                  </View>
+                  <Image
+                    source={{ uri: comparisonImage.maskUri }}
+                    style={styles.detailImage}
+                  />
                 </>
               )
             )}
@@ -251,6 +224,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 10,
     backgroundColor: "#e0e0e0",
+    borderColor: "#ccc",
+    borderWidth: 1,
   },
   sectionTitle: {
     fontSize: 18,
