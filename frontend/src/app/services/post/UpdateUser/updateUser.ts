@@ -4,14 +4,10 @@ import { api } from "../../api";
 export const updateUser = async (
   email: string,
   username: string,
-  password: string
+  password: string,
+  userId: string | null
 ) => {
   try {
-    const token = await AsyncStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("Token não encontrado. Usuário não autenticado.");
-    }
 
     const response = await api.put(
       "/user/update",
@@ -19,11 +15,7 @@ export const updateUser = async (
         email,
         name: username,
         password,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        userId
       }
     );
 

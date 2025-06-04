@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   SafeAreaView,
@@ -12,12 +12,40 @@ import {
 } from "react-native";
 import { updateUser } from "../../services/post/UpdateUser/updateUser";
 import { router } from "expo-router"; // Importe o router
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
   const [email, setEmail] = useState("");
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [senhaVisivel, setSenhaVisivel] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const id = await getUserId();
+        setUserId(id);
+      } catch (error) {
+        setUserId(null);
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  const getUserId = async () => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        return userId;
+      } else {
+        throw new Error("User ID not found in storage");
+      }
+    } catch (error) {
+      console.error("Error retrieving user ID:", error);
+      throw error;
+    }
+  };
 
   const handleAtualizar = async () => {
     if (!usuario || !email || !senha) {
@@ -26,7 +54,7 @@ export default function ProfileScreen() {
     }
 
     try {
-      await updateUser(email, usuario, senha);
+      await updateUser(email, usuario, senha, userId);
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
     } catch (error) {
       Alert.alert("Erro", "Não foi possível atualizar os dados.");
