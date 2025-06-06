@@ -1,5 +1,5 @@
-import { Image, Text, TouchableOpacity, View } from "react-native";
-import { StyleSheet } from "react-native";
+import { Image, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { Ionicons } from '@expo/vector-icons'; 
 
 interface BoxFavsProps {
   latitude: number;
@@ -7,6 +7,7 @@ interface BoxFavsProps {
   description: string;
   uri: string;
   onPress: () => void;
+  onDeletePress: () => void; 
 }
 
 export default function BoxFavs({
@@ -15,30 +16,45 @@ export default function BoxFavs({
   description,
   uri,
   onPress,
+  onDeletePress, 
 }: BoxFavsProps) {
   return (
-    <TouchableOpacity style={styles.boxContainer} onPress={onPress}>
-      <Image source={{ uri: uri }} style={styles.image} />
-      <View style={styles.textContainer}>
-        <Text style={styles.titleText}>{latitude + ", " + longitude}</Text>
-        <Text style={styles.descriptionText}>{description}</Text>
-      </View>
-    </TouchableOpacity>
+    <View style={styles.boxContainer}>
+      <TouchableOpacity style={styles.contentContainer} onPress={onPress}>
+        <Image source={{ uri: uri }} style={styles.image} />
+        <View style={styles.textContainer}>
+          <Text style={styles.titleText}>{latitude + ", " + longitude}</Text>
+          <Text style={styles.descriptionText} numberOfLines={2}>{description}</Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.deleteButton} onPress={onDeletePress}>
+        <Ionicons name="trash-bin" size={24} color="#D9534F" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   boxContainer: {
     flexDirection: "row",
-    alignItems: "center",
     width: "90%",
     backgroundColor: "white",
     borderWidth: 1,
-    borderColor: "black",
+    borderColor: "#ccc",
     borderRadius: 8,
-    padding: 10,
     marginBottom: 15,
     elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1, 
+    padding: 10, 
   },
   image: {
     width: 70,
@@ -49,6 +65,7 @@ const styles = StyleSheet.create({
   textContainer: {
     flexDirection: "column",
     flex: 1,
+    paddingRight: 25, 
   },
   titleText: {
     fontWeight: "bold",
@@ -58,5 +75,12 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 14,
     color: "#555",
+  },
+  deleteButton: {
+    position: 'absolute', 
+    top: 5,
+    right: 5,
+    padding: 5, 
+    zIndex: 1,
   },
 });

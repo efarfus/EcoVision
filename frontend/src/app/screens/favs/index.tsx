@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, View, RefreshControl } from "react-native"; // Importe RefreshControl
+import { FlatList, StyleSheet, Text, View, RefreshControl, Alert } from "react-native"; // Importe RefreshControl
 import BoxFavs from "../../components/BoxFavs";
 import Toolbar from "../../components/Toolbar";
 import { router, useFocusEffect } from "expo-router";
 import { getFavs } from "../../services/get/getFavs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { deleteFavoriteCoordinate } from "../../services/delete/deleteFav";
 
 interface Fav {
   id: string;
@@ -17,6 +18,37 @@ interface Fav {
 export default function Favs() {
   const [favs, setFavs] = useState<Fav[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  const handleDelete = async (favId: string) => {
+  // 1. Pedir confirmação ao usuário
+  Alert.alert(
+    "Confirmar Exclusão",
+    "Você tem certeza que deseja remover este local dos seus favoritos?",
+    [
+      {
+        text: "Cancelar",
+        style: "cancel"
+      },
+      {
+        text: "Sim, Excluir",
+        onPress: async () => {
+          try {
+            await deleteFavoriteCoordinate(favId);
+            setFavs(currentFavorites =>
+              currentFavorites.filter(fav => fav.id !== favId)
+            );
+
+            Alert.alert("Sucesso", "Favorito removido!");
+
+          } catch (error) {
+            Alert.alert("Erro", "Não foi possível remover o favorito. Tente novamente.");
+          }
+        },
+        style: "destructive"
+      }
+    ]
+  );
+};
 
   const fetchData = useCallback(async (id: string) => {
     try {
@@ -102,6 +134,7 @@ export default function Favs() {
               AsyncStorage.setItem("favId", item.id);
               router.push(`/screens/favsDetails/${item.id}`);
             }}
+            onDeletePress={() => handleDelete(item.id)}
           />
         )}
         refreshControl={

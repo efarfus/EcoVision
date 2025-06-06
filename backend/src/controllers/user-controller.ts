@@ -118,6 +118,20 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
       res.status(404).json({message: 'User not found!'})
     }
 
+    if(!password){
+      const oldPassword = identifiedUser?.password
+
+      await userRepository.updateUser(userId, {
+        name,
+        password: oldPassword,
+        email,
+      })  
+      
+
+      res.status(200).json({message: "User updated"})
+      return
+    }
+
     await userRepository.updateUser(userId, {
       name,
       password,
