@@ -12,10 +12,11 @@ model_path = 'artefatos/unet_saved_model'
 model = tf.keras.layers.TFSMLayer(model_path, call_endpoint='serving_default')
 
 
+
 def preprocess_image(image_bytes):
     img = Image.open(io.BytesIO(image_bytes)).convert('RGB')
     img = img.resize((128, 128))
-    img_array = np.array(img) / 255.0
+    img_array = np.array(img).astype(np.float32) 
     return np.expand_dims(img_array, axis=0)
 
 def postprocess_mask_to_base64(mask_tensor):

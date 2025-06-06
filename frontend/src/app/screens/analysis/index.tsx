@@ -11,8 +11,10 @@ import {
 import Toolbar from "../../components/Toolbar";
 import { router, useLocalSearchParams } from "expo-router";
 import { postImage } from "../../servicesIA/post";
+import getSentinelImagesByYear from "../../services/get/getSentinelImagesByYear";
+import { Buffer } from "buffer";
 
-const YEARS = [2000, 2005, 2010, 2015, 2020];
+const YEARS = [2016, 2017, 2018, 2019, 2020];
 
 export default function AnalysisScreen() {
   const params = useLocalSearchParams();
@@ -45,7 +47,6 @@ export default function AnalysisScreen() {
 
           const result = await postImage(imageUri);
           if (result.mask_base64) {
-            console.log("RESPOSTA COMPLETA RECEBIDA PELA API:", result);
             setMainMaskUri(`data:image/png;base64,${result.mask_base64}`);
           }
         } catch (error) {
@@ -78,20 +79,40 @@ export default function AnalysisScreen() {
     setComparisonImage(null);
 
     try {
-      console.log(`Buscando imagem de satélite para ${year}`);
-      const newSatelliteImageUri = `https://picsum.photos/400/300?random=${year}`;
+      const newSatelliteImageUri = await getSentinelImagesByYear(
+        initialLongitude,
+        initialLatitude,
+        year
+      );
 
-      console.log(`Enviando imagem de ${year} para análise`);
-      const result = await postImage(newSatelliteImageUri);
+      let satelliteImageUriString = ""; 
+
+      if (typeof newSatelliteImageUri === "string") {
+        satelliteImageUriString = newSatelliteImageUri;
+      } else if (newSatelliteImageUri instanceof ArrayBuffer) {
+
+        const base64 = Buffer.from(newSatelliteImageUri).toString("base64");
+        satelliteImageUriString = `data:image/png;base64,${base64}`;
+      }
+
+      if (!satelliteImageUriString) {
+        setComparisonImage(null);
+        setIsComparisonLoading(false);
+        alert(`Nenhuma imagem encontrada para o ano ${year}.`);
+        return;
+      }
+
+      const result = await postImage(satelliteImageUriString);
 
       if (result.mask_base64) {
         setComparisonImage({
-          satelliteUri: newSatelliteImageUri,
+          satelliteUri: satelliteImageUriString,
           maskUri: `data:image/png;base64,${result.mask_base64}`,
         });
       }
     } catch (error) {
       console.error(`Erro ao buscar dados para o ano ${year}:`, error);
+      alert(`Erro ao buscar imagem para ${year}. Tente novamente.`);
     } finally {
       setIsComparisonLoading(false);
     }
