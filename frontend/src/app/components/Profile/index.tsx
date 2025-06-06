@@ -51,6 +51,7 @@ export default function ProfileScreen() {
       }
       try {
         const response = await api.get(`/user/${userId}`);
+        console.log("User data fetched:", response.data);
         const fetchedUser: User = response.data.identifiedUser;
         setEmail(fetchedUser.email);
         setUsuario(fetchedUser.name);
