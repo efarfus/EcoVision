@@ -43,6 +43,8 @@ export default function Home() {
     lat: number;
     lng: number;
   }) => {
+    setImageUri(null);
+    setSelectedCoords(null);
     setSelectedCoords(coords);
     setModalVisible(true);
 
@@ -84,7 +86,7 @@ export default function Home() {
   const handleAnalysisPress = () => {
     if (selectedCoords && imageUri) {
       // Certifique-se de que tem os dados
-      setModalVisible(false)
+      setModalVisible(false);
       router.push({
         pathname: "/screens/analysis",
         params: {
