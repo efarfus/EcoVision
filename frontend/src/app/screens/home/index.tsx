@@ -149,7 +149,7 @@ type LeafletMapProps = {
 
 const LeafletMap: React.FC<LeafletMapProps> = ({ onCoordinateSelected }) => {
   const leafletHTML = `
-    <!DOCTYPE html>
+      <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8" />
@@ -164,9 +164,11 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ onCoordinateSelected }) => {
         <div id="map"></div>
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
         <script>
-          var map = L.map('map').setView([-3.119028, -60.021731], 13);
+          var map = L.map('map').setView([-3.859, -52.633], 13);
+          
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-          L.marker([-3.119028, -60.021731]).addTo(map).bindPopup('Manaus - AM').openPopup();
+
+          L.marker([-3.859, -52.633]).addTo(map).bindPopup('Foco de Desmatamento, Altamira-PA').openPopup();
 
           map.on('click', function(e) {
             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -178,6 +180,8 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ onCoordinateSelected }) => {
       </body>
     </html>
   `;
+
+  // O resto do seu componente continua aqui...
 
   return (
     <WebView

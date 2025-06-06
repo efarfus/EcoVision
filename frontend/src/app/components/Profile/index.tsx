@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   SafeAreaView,
@@ -11,13 +11,78 @@ import {
   View,
 } from "react-native";
 import { updateUser } from "../../services/post/UpdateUser/updateUser";
-import { router } from "expo-router"; // Importe o router
+import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api } from "../../services/api";
+
+interface User {
+  name: string;
+  email: string;
+  password?: string; // Senha é opcional, pois talvez você não queira exibi-la
+  id: string;
+}
 
 export default function ProfileScreen() {
   const [email, setEmail] = useState("");
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [senhaVisivel, setSenhaVisivel] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); 
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const id = await getUserId();
+        setUserId(id);
+      } catch (error) {
+        setUserId(null);
+        setLoading(false); 
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    async function fetchUser() {
+      if (!userId) {
+        setLoading(false); 
+        return;
+      }
+      try {
+        const response = await api.get(`/user/${userId}`);
+        console.log("User data fetched:", response.data);
+        const fetchedUser: User = response.data.identifiedUser;
+        setEmail(fetchedUser.email);
+        setUsuario(fetchedUser.name);
+        setSenha(""); 
+
+        setLoading(false); 
+      } catch (err) {
+        console.error("Error fetching user data: ", err);
+        Alert.alert(
+          "Erro",
+          "Não foi possível carregar os dados do usuário."
+        );
+        setLoading(false); 
+      }
+    }
+    fetchUser();
+  }, [userId]); 
+
+  const getUserId = async () => {
+    try {
+      const storedUserId = await AsyncStorage.getItem("userId");
+      if (storedUserId) {
+        return storedUserId;
+      } else {
+        throw new Error("User ID not found in storage");
+      }
+    } catch (error) {
+      console.error("Error retrieving user ID:", error);
+      throw error;
+    }
+  };
 
   const handleAtualizar = async () => {
     if (!usuario || !email || !senha) {
@@ -26,7 +91,7 @@ export default function ProfileScreen() {
     }
 
     try {
-      await updateUser(email, usuario, senha);
+      await updateUser(email, usuario, senha, userId);
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
     } catch (error) {
       Alert.alert("Erro", "Não foi possível atualizar os dados.");
@@ -48,10 +113,17 @@ export default function ProfileScreen() {
     Alert.alert("Logout", "Você saiu da conta!");
   };
 
-  // Nova função para navegar para favoritos
   const handleGoToFavs = () => {
     router.push("/screens/favs");
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loadingText}>Carregando perfil...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -78,12 +150,13 @@ export default function ProfileScreen() {
           value={email}
           onChangeText={setEmail}
           placeholderTextColor="#888"
+          keyboardType="email-address" 
         />
 
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
-            placeholder="Senha"
+            placeholder="Senha (deixe em branco para manter a atual)" 
             value={senha}
             onChangeText={setSenha}
             secureTextEntry={!senhaVisivel}
@@ -212,5 +285,12 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  loadingText: {
+    flex: 1,
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontSize: 18,
+    color: "#888",
   },
 });

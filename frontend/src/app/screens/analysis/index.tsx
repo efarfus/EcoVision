@@ -10,126 +10,202 @@ import {
 } from "react-native";
 import Toolbar from "../../components/Toolbar";
 import { router, useLocalSearchParams } from "expo-router";
+import { postImage } from "../../servicesIA/post";
+import getSentinelImagesByYear from "../../services/get/getSentinelImagesByYear";
+import { Buffer } from "buffer";
+import { IconStar, IconStarFilled } from "@tabler/icons-react-native";
+import { postFavs } from "../../services/post/PostFavs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-interface AnalysisScreenParams {
-  latitude: string;
-  longitude: string;
-  imageUri: string;
-}
-
-const YEARS = [2000, 2005, 2010, 2015, 2020];
+const YEARS = [2017, 2018, 2019, 2020, 2021];
 
 export default function AnalysisScreen() {
   const params = useLocalSearchParams();
-
+  const [mainMaskPercentage, setMainMaskPercentage] = useState<number | null>(
+    null
+  );
   const [initialLatitude, setInitialLatitude] = useState<number | null>(null);
   const [initialLongitude, setInitialLongitude] = useState<number | null>(null);
   const [mainImageDisplayUri, setMainImageDisplayUri] = useState<string | null>(
     null
   );
-  const [mainBinaryImage, setMainBinaryImage] = useState(
-    "Carregando dados binários..."
-  );
-
+  const [mainMaskUri, setMainMaskUri] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [comparisonImage, setComparisonImage] = useState<{
-    uri: string;
-    binary: string;
+    satelliteUri: string;
+    maskUri: string;
+    percentage: number;
   } | null>(null);
   const [isComparisonLoading, setIsComparisonLoading] = useState(false);
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Função para obter o userId do AsyncStorage
+  const getUserId = async () => {
+    try {
+      const storedUserId = await AsyncStorage.getItem("userId");
+      if (storedUserId) {
+        return storedUserId;
+      } else {
+        throw new Error("User ID not found in storage");
+      }
+    } catch (error) {
+      console.error("Erro ao obter ID do usuário:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    if (params.latitude && params.longitude && params.imageUri) {
-      try {
-        const latitude =
-          typeof params.latitude === "string"
-            ? params.latitude
-            : params.latitude[0];
-        const longitude =
-          typeof params.longitude === "string"
-            ? params.longitude
-            : params.longitude[0];
-        const imageUri =
-          typeof params.imageUri === "string"
-            ? params.imageUri
-            : params.imageUri[0];
+    getUserId()
+      .then((id) => {
+        if (id) {
+          setUserId(id);
+        } else {
+          console.warn("User ID not found in storage");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user ID:", error);
+      });
+  }, []);
 
-        setInitialLatitude(parseFloat(latitude));
-        setInitialLongitude(parseFloat(longitude));
-        setMainImageDisplayUri(imageUri);
-        setMainBinaryImage(
-          "dados da imagem de satélite principal (recebidos/simulados)"
-        );
-        setIsLoadingInitialData(false);
-      } catch (error) {
-        console.error("Erro ao processar parâmetros da rota:", error);
+  const handleFavorite = async () => {
+    if (
+      !initialLatitude ||
+      !initialLongitude ||
+      !mainImageDisplayUri ||
+      !userId
+    ) {
+      alert("Não é possível favoritar: dados incompletos.");
+      return;
+    }
+
+    // Inverte o estado para dar feedback visual
+    setIsFavorite(!isFavorite);
+
+    try {
+      // Envia para a API apenas se não estiver favoritado ainda
+      if (!isFavorite) {
+        await postFavs({
+          latitude: initialLatitude,
+          longitude: initialLongitude,
+          uri: mainImageDisplayUri,
+          userId: userId,
+        });
+        alert("Local salvo nos seus favoritos!");
+      } else {
+        alert("Local removido dos favoritos.");
+      }
+    } catch (error) {
+      console.error("Erro ao favoritar:", error);
+      alert("Ocorreu um erro ao salvar o favorito.");
+      setIsFavorite(isFavorite);
+    }
+  };
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      if (params.latitude && params.longitude && params.imageUri) {
+        try {
+          const imageUri =
+            typeof params.imageUri === "string"
+              ? params.imageUri
+              : params.imageUri[0];
+
+          setInitialLatitude(parseFloat(params.latitude as string));
+          setInitialLongitude(parseFloat(params.longitude as string));
+          setMainImageDisplayUri(imageUri);
+
+          const result = await postImage(imageUri);
+          if (result.mask_base64) {
+            setMainMaskUri(`data:image/png;base64,${result.mask_base64}`);
+            setMainMaskPercentage(result.deforestation_percentage);
+          }
+        } catch (error) {
+          console.error(
+            "Erro ao processar dados iniciais ou chamar API:",
+            error
+          );
+        } finally {
+          setIsLoadingInitialData(false);
+        }
+      } else {
+        console.warn("Parâmetros necessários não foram recebidos.");
         setIsLoadingInitialData(false);
       }
-    } else {
-      console.warn(
-        "Parâmetros necessários (latitude, longitude, imageUri) não foram recebidos para a tela de Análise."
-      );
-      setIsLoadingInitialData(false);
-    }
-  }, [params]); // Re-executa se os params mudarem
+    };
+
+    fetchInitialData();
+  }, [params]);
 
   const handleGoBack = () => {
     router.back();
   };
 
   const handleYearSelect = async (year: number) => {
-    if (selectedYear === year) return; // Não faz nada se o mesmo ano for clicado
-    if (!initialLatitude || !initialLongitude) {
-      console.warn(
-        "Coordenadas iniciais não disponíveis para buscar dados anuais."
-      );
-      return;
-    }
+    if (selectedYear === year || isComparisonLoading) return;
+    if (!initialLatitude || !initialLongitude) return;
 
     setSelectedYear(year);
     setIsComparisonLoading(true);
-    setComparisonImage(null); // Limpa a imagem anterior
+    setComparisonImage(null);
 
-    // --- PONTO DE INTEGRAÇÃO DA SUA API DE IA ---
-    // Aqui você faria a chamada para a sua API de IA, passando o 'year',
-    // 'initialLatitude' e 'initialLongitude'.
-    console.log(
-      `Simulando busca para o ano ${year} com coordenadas: Lat ${initialLatitude}, Lng ${initialLongitude}`
-    );
-    setTimeout(() => {
-      setComparisonImage({
-        uri: `https://picsum.photos/400/300?random=${year}`, // Imagem de placeholder
-        binary: `Imagem binária para o ano ${year} (dados da sua IA aqui)`,
-      });
+    try {
+      const newSatelliteImageUri = await getSentinelImagesByYear(
+        initialLongitude,
+        initialLatitude,
+        year
+      );
+
+      let satelliteImageUriString = "";
+
+      if (typeof newSatelliteImageUri === "string") {
+        satelliteImageUriString = newSatelliteImageUri;
+      } else if (newSatelliteImageUri instanceof ArrayBuffer) {
+        const base64 = Buffer.from(newSatelliteImageUri).toString("base64");
+        satelliteImageUriString = `data:image/png;base64,${base64}`;
+      }
+
+      if (!satelliteImageUriString) {
+        setComparisonImage(null);
+        setIsComparisonLoading(false);
+        alert(`Nenhuma imagem encontrada para o ano ${year}.`);
+        return;
+      }
+
+      const result = await postImage(satelliteImageUriString);
+
+      if (result.mask_base64) {
+        setComparisonImage({
+          satelliteUri: satelliteImageUriString,
+          maskUri: `data:image/png;base64,${result.mask_base64}`,
+          percentage: result.deforestation_percentage,
+        });
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar dados para o ano ${year}:`, error);
+      alert(`Erro ao buscar imagem para ${year}. Tente novamente.`);
+    } finally {
       setIsComparisonLoading(false);
-    }, 1500); // Simula 1.5s de delay da rede
+    }
   };
 
-  // Renderização de loading para os dados iniciais
   if (isLoadingInitialData) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Carregando dados para análise...</Text>
+        <Text>Analisando imagem inicial...</Text>
       </View>
     );
   }
 
-  // Se os dados iniciais essenciais não foram carregados (ex: faltaram params)
-  if (
-    initialLatitude === null ||
-    initialLongitude === null ||
-    !mainImageDisplayUri
-  ) {
+  if (!mainImageDisplayUri) {
     return (
       <View style={styles.container}>
         <Toolbar title="Erro na Análise" onPress={handleGoBack} />
         <View style={styles.centered}>
-          <Text>
-            Não foi possível carregar os dados necessários para a análise.
-          </Text>
-          <Text>Verifique se os parâmetros foram passados corretamente.</Text>
+          <Text>Não foi possível carregar os dados.</Text>
         </View>
       </View>
     );
@@ -142,27 +218,40 @@ export default function AnalysisScreen() {
         style={styles.contentContainer}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Detalhes Iniciais (vindos dos parâmetros) */}
-        <Text style={styles.detailText}>
-          Coordenadas da imagem: {initialLatitude}, {initialLongitude}
-        </Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.detailText}>
+            Coordenadas: {initialLatitude?.toFixed(4)},{" "}
+            {initialLongitude?.toFixed(4)}
+          </Text>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={handleFavorite}
+          >
+            {isFavorite ? (
+              <IconStarFilled size={28} color="#FFD700" />
+            ) : (
+              <IconStar size={28} color="#ccc" />
+            )}
+          </TouchableOpacity>
+        </View>
         <Image
           source={{ uri: mainImageDisplayUri }}
           style={styles.detailImage}
         />
 
-        <Text style={styles.sectionTitle}>
-          Imagem Binária da Foto de Satélite Principal
-        </Text>
-        <View style={styles.binaryContainer}>
-          <Text style={styles.binaryText} selectable>
-            {mainBinaryImage}
-          </Text>
-          <Image
-            source={{ uri: mainImageDisplayUri }}
-            style={styles.detailImage}
-          />
-        </View>
+        <Text style={styles.sectionTitle}>Máscara da Imagem Principal</Text>
+        {mainMaskUri ? (
+          <>
+            <Image source={{ uri: mainMaskUri }} style={styles.detailImage} />
+            {mainMaskPercentage !== null && (
+              <Text style={styles.percentageText}>
+                Área de desmatamento: {mainMaskPercentage.toFixed(2)}%
+              </Text>
+            )}
+          </>
+        ) : (
+          <Text>Máscara não disponível.</Text>
+        )}
 
         <Text style={styles.sectionTitle}>
           Selecione um ano para comparação
@@ -200,24 +289,53 @@ export default function AnalysisScreen() {
             ) : (
               comparisonImage && (
                 <>
+                  <Text style={styles.sectionTitle}>
+                    Comparação com {selectedYear}
+                  </Text>
                   <Image
-                    source={{ uri: comparisonImage.uri }}
+                    source={{ uri: comparisonImage.satelliteUri }}
                     style={styles.detailImage}
                   />
                   <Text style={styles.sectionTitle}>
-                    Imagem Binária de {selectedYear}
+                    Máscara de {selectedYear}
                   </Text>
-                  <View style={styles.binaryContainer}>
-                    <Text style={styles.binaryText} selectable>
-                      {comparisonImage.binary}
+                  <Image
+                    source={{ uri: comparisonImage.maskUri }}
+                    style={styles.detailImage}
+                  />
+                  {mainMaskPercentage !== null && (
+                    <Text style={styles.percentageText}>
+                      Área de desmatamento:{" "}
+                      {comparisonImage.percentage.toFixed(2)}%
                     </Text>
-                    <Image
-                      source={{ uri: comparisonImage.uri }}
-                      style={styles.detailImage}
-                    />
-                  </View>
+                  )}
                 </>
               )
+            )}
+            {mainMaskPercentage !== null && (
+              <View style={styles.summaryContainer}>
+                <Text style={styles.sectionTitle}>Resumo da Análise</Text>
+                <Text style={styles.summaryText}>
+                  Desmatamento na imagem principal:{" "}
+                  {mainMaskPercentage.toFixed(2)}%
+                </Text>
+                <Text style={styles.summaryText}>
+                  Desmatamento em {selectedYear}:{" "}
+                  {comparisonImage
+                    ? comparisonImage.percentage.toFixed(2)
+                    : "--"}
+                  %
+                </Text>
+                <Text style={[styles.summaryText, styles.summaryHighlight]}>
+                  Variação:{" "}
+                  {comparisonImage
+                    ? (comparisonImage.percentage - mainMaskPercentage).toFixed(
+                        2
+                      )
+                    : "--"}
+                  %
+                </Text>
+              </View>
             )}
           </View>
         )}
@@ -227,6 +345,20 @@ export default function AnalysisScreen() {
 }
 
 const styles = StyleSheet.create({
+  titleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  detailText: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1, // Permite que o texto cresça e empurre o botão
+  },
+  favoriteButton: {
+    padding: 8,
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -251,6 +383,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 10,
     backgroundColor: "#e0e0e0",
+    borderColor: "#ccc",
+    borderWidth: 1,
   },
   sectionTitle: {
     fontSize: 18,
@@ -303,5 +437,31 @@ const styles = StyleSheet.create({
   },
   comparisonSection: {
     marginTop: 20,
+  },
+  percentageText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#007AFF",
+    textAlign: "center",
+    marginTop: 10,
+  },
+  summaryContainer: {
+    marginTop: 30,
+    padding: 15,
+    backgroundColor: "#f7f7f7",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  summaryText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#333",
+  },
+  summaryHighlight: {
+    marginTop: 10,
+    fontWeight: "bold",
+    fontSize: 18,
+    color: "#d9534f",
   },
 });

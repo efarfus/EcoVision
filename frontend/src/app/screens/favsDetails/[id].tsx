@@ -12,47 +12,65 @@ import Toolbar from "../../components/Toolbar";
 import { router, useLocalSearchParams } from "expo-router";
 import { getFavsById } from "../../services/get/getFavsById";
 
+// --- LÓGICA DA ANÁLISE IMPORTADA ---
+import { postImage } from "../../servicesIA/post";
+import getSentinelImagesByYear from "../../services/get/getSentinelImagesByYear";
+import { Buffer } from "buffer";
+
 interface FavoriteDetails {
   createdAt: string;
   latitude: number;
   longitude: number;
   uri: string;
 }
-const YEARS = [2000, 2005, 2010, 2015, 2020];
+
+// Anos mais recentes para uma comparação mais relevante
+const YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
 
 export default function FavsDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [favsDetails, setFavsDetails] = useState<FavoriteDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [mainBinaryImage, setMainBinaryImage] = useState(
-    "Carregando dados binários..."
+  // --- ESTADOS DA ANÁLISE ---
+  const [mainMaskUri, setMainMaskUri] = useState<string | null>(null);
+  const [mainMaskPercentage, setMainMaskPercentage] = useState<number | null>(
+    null
   );
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [comparisonImage, setComparisonImage] = useState<{
-    uri: string;
-    binary: string;
+    satelliteUri: string;
+    maskUri: string;
+    percentage: number;
   } | null>(null);
   const [isComparisonLoading, setIsComparisonLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const fetchData = async () => {
+      const fetchDataAndAnalyze = async () => {
         try {
+          // 1. Busca os detalhes do favorito (imagem principal, lat, lng)
           const response = await getFavsById(id);
           if (response && response.coordinates) {
-            setFavsDetails(response.coordinates);
-            setMainBinaryImage("dados da imagem de satélite principal");
+            const details = response.coordinates;
+            setFavsDetails(details);
+
+            // 2. Envia a imagem principal para a análise da IA
+            const result = await postImage(details.uri);
+            if (result.mask_base64) {
+              setMainMaskUri(`data:image/png;base64,${result.mask_base64}`);
+              setMainMaskPercentage(result.deforestation_percentage);
+            }
           } else {
             console.error("Nenhum dado encontrado para o ID:", id);
           }
         } catch (error) {
-          console.error("Erro ao buscar detalhes:", error);
+          console.error("Erro ao buscar ou analisar detalhes:", error);
         } finally {
           setLoading(false);
         }
       };
-      fetchData();
+      fetchDataAndAnalyze();
     } else {
       setLoading(false);
     }
@@ -62,27 +80,57 @@ export default function FavsDetails() {
     router.back();
   };
 
+  // --- LÓGICA DE COMPARAÇÃO REAL ---
   const handleYearSelect = async (year: number) => {
-    if (selectedYear === year) return;
+    if (selectedYear === year || isComparisonLoading || !favsDetails) return;
 
     setSelectedYear(year);
     setIsComparisonLoading(true);
     setComparisonImage(null);
 
-    console.log(`Simulando busca para o ano ${year}...`);
-    setTimeout(() => {
-      setComparisonImage({
-        uri: `https://picsum.photos/400/300?random=${year}`,
-        binary: `Imagem binária para o ano ${year}`,
-      });
+    try {
+      const newSatelliteImageUri = await getSentinelImagesByYear(
+        favsDetails.longitude,
+        favsDetails.latitude,
+        year
+      );
+
+      let satelliteImageUriString = "";
+      if (typeof newSatelliteImageUri === "string") {
+        satelliteImageUriString = newSatelliteImageUri;
+      } else if (newSatelliteImageUri instanceof ArrayBuffer) {
+        const base64 = Buffer.from(newSatelliteImageUri).toString("base64");
+        satelliteImageUriString = `data:image/png;base64,${base64}`;
+      }
+
+      if (!satelliteImageUriString) {
+        alert(`Nenhuma imagem encontrada para o ano ${year}.`);
+        setIsComparisonLoading(false);
+        return;
+      }
+
+      const result = await postImage(satelliteImageUriString);
+
+      if (result.mask_base64) {
+        setComparisonImage({
+          satelliteUri: satelliteImageUriString,
+          maskUri: `data:image/png;base64,${result.mask_base64}`,
+          percentage: result.deforestation_percentage,
+        });
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar dados para o ano ${year}:`, error);
+      alert(`Erro ao buscar imagem para ${year}. Tente novamente.`);
+    } finally {
       setIsComparisonLoading(false);
-    }, 1500);
+    }
   };
 
   if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#007AFF" />
+        <Text>Carregando e analisando favorito...</Text>
       </View>
     );
   }
@@ -92,7 +140,7 @@ export default function FavsDetails() {
       <View style={styles.container}>
         <Toolbar title="Erro" onPress={handleGoBack} />
         <View style={styles.centered}>
-          <Text>Não foi possível carregar os detalhes.</Text>
+          <Text>Não foi possível carregar os detalhes do favorito.</Text>
         </View>
       </View>
     );
@@ -100,29 +148,29 @@ export default function FavsDetails() {
 
   return (
     <View style={styles.container}>
-      <Toolbar title="Detalhes" onPress={handleGoBack} />
+      <Toolbar title="Análise do Favorito" onPress={handleGoBack} />
       <ScrollView
         style={styles.contentContainer}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <Text style={styles.detailText}>
-          Coordenadas da imagem: {favsDetails.latitude}, {favsDetails.longitude}
-        </Text>
-        <Text style={styles.detailText}>
-          Favoritado em:{" "}
-          {new Date(favsDetails.createdAt).toLocaleDateString("pt-BR")}
+          Coordenadas: {favsDetails.latitude}, {favsDetails.longitude}
         </Text>
         <Image source={{ uri: favsDetails.uri }} style={styles.detailImage} />
 
-        <Text style={styles.sectionTitle}>
-          Imagem Binária da Foto de Satélite
-        </Text>
-        <View style={styles.binaryContainer}>
-          <Text style={styles.binaryText} selectable>
-            {mainBinaryImage}
-          </Text>
-          <Image source={{ uri: favsDetails.uri }} style={styles.detailImage} />
-        </View>
+        <Text style={styles.sectionTitle}>Máscara da Imagem Principal</Text>
+        {mainMaskUri ? (
+          <>
+            <Image source={{ uri: mainMaskUri }} style={styles.detailImage} />
+            {mainMaskPercentage !== null && (
+              <Text style={styles.percentageText}>
+                Área de desmatamento: {mainMaskPercentage.toFixed(2)}%
+              </Text>
+            )}
+          </>
+        ) : (
+          <ActivityIndicator color="#007AFF" />
+        )}
 
         <Text style={styles.sectionTitle}>
           Selecione um ano para comparação
@@ -160,22 +208,47 @@ export default function FavsDetails() {
             ) : (
               comparisonImage && (
                 <>
+                  <Text style={styles.sectionTitle}>
+                    Comparação com {selectedYear}
+                  </Text>
                   <Image
-                    source={{ uri: comparisonImage.uri }}
+                    source={{ uri: comparisonImage.satelliteUri }}
                     style={styles.detailImage}
                   />
                   <Text style={styles.sectionTitle}>
-                    Imagem Binária de {selectedYear}
+                    Máscara de {selectedYear}
                   </Text>
-                  <View style={styles.binaryContainer}>
-                    <Text style={styles.binaryText} selectable>
-                      {comparisonImage.binary}
-                    </Text>
-                    <Image
-                      source={{ uri: comparisonImage.uri }}
-                      style={styles.detailImage}
-                    ></Image>
-                  </View>
+                  <Image
+                    source={{ uri: comparisonImage.maskUri }}
+                    style={styles.detailImage}
+                  />
+                  <Text style={styles.percentageText}>
+                    Área de desmatamento:{" "}
+                    {comparisonImage.percentage.toFixed(2)}%
+                  </Text>
+
+                  {mainMaskPercentage !== null && (
+                    <View style={styles.summaryContainer}>
+                      <Text style={styles.sectionTitle}>Resumo da Análise</Text>
+                      <Text style={styles.summaryText}>
+                        Desmatamento na imagem principal:{" "}
+                        {mainMaskPercentage.toFixed(2)}%
+                      </Text>
+                      <Text style={styles.summaryText}>
+                        Desmatamento em {selectedYear}:{" "}
+                        {comparisonImage.percentage.toFixed(2)}%
+                      </Text>
+                      <Text
+                        style={[styles.summaryText, styles.summaryHighlight]}
+                      >
+                        Variação:{" "}
+                        {(
+                          comparisonImage.percentage - mainMaskPercentage
+                        ).toFixed(2)}
+                        %
+                      </Text>
+                    </View>
+                  )}
                 </>
               )
             )}
@@ -186,6 +259,7 @@ export default function FavsDetails() {
   );
 }
 
+// Adicione todos os estilos da AnalysisScreen aqui para garantir a consistência
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -195,6 +269,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
   },
   contentContainer: {
     flex: 1,
@@ -210,6 +285,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 10,
     backgroundColor: "#e0e0e0",
+    borderColor: "#ccc",
+    borderWidth: 1,
   },
   sectionTitle: {
     fontSize: 18,
@@ -220,18 +297,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
     paddingBottom: 5,
-  },
-  binaryContainer: {
-    backgroundColor: "#f0f0f0",
-    padding: 10,
-    borderRadius: 5,
-    minHeight: 80,
-    justifyContent: "center",
-  },
-  binaryText: {
-    fontFamily: "monospace",
-    fontSize: 12,
-    color: "#555",
   },
   yearSelectionContainer: {
     flexDirection: "row",
@@ -245,6 +310,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#e9e9e9",
     borderRadius: 20,
     marginVertical: 5,
+    minWidth: "23%", // Ajuste para caber mais anos
+    alignItems: "center",
   },
   selectedYearButton: {
     backgroundColor: "#007AFF",
@@ -259,5 +326,31 @@ const styles = StyleSheet.create({
   },
   comparisonSection: {
     marginTop: 20,
+  },
+  percentageText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#007AFF",
+    textAlign: "center",
+    marginTop: 10,
+  },
+  summaryContainer: {
+    marginTop: 30,
+    padding: 15,
+    backgroundColor: "#f7f7f7",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  summaryText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#333",
+  },
+  summaryHighlight: {
+    marginTop: 10,
+    fontWeight: "bold",
+    fontSize: 18,
+    color: "#d9534f",
   },
 });

@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   image: {
-    width: 250,
-    height: 250,
+    width: 224,
+    height: 224,
     marginVertical: 10,
   },
   buttonRow: {
