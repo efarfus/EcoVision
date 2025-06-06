@@ -9,9 +9,7 @@ export const updateUser = async (
 ) => {
   try {
 
-    const response = await api.put(
-      "/user/update",
-      {
+    const response = await api.put("/user/update", {
         email,
         name: username,
         password,

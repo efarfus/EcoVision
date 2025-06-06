@@ -149,11 +149,28 @@ export const getUserWithToken = async(req: Request, res: Response, next: NextFun
     if(!identifiedUser){
       return res.status(404).json('Usuário não localizado')
     }
-    const identifiedUserJson = JSON.parse(JSON.stringify(identifiedUser, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    ));
   
-    return res.status(200).json({identifiedUserJson})
+    return res.status(200).json({identifiedUser})
+  } catch(err){
+    res.status(500).json(err)
+  }
+}
+
+export const getUserById = async(req: Request, res: Response, next: NextFunction): Promise<Response | any> => {
+  const {id} = req.params;
+
+  if(!id){
+    return res.status(404).json('Usuário não encontrado')
+  }
+
+  try{
+    const identifiedUser = await userRepository.getUserById(id)
+
+    if(!identifiedUser){
+      return res.status(404).json('Usuário não localizado')
+    }
+  
+    return res.status(200).json({identifiedUser})
   } catch(err){
     res.status(500).json(err)
   }

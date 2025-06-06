@@ -9,6 +9,7 @@ const router = express.Router();
 router.get('/users', usersController.getUsers);
 router.get('/user/token', usersController.getUserWithToken)
 router.get('/user/email', usersController.getUserIdByEmail)
+router.get('/user/:id', usersController.getUserById)
 
 router.post('/signup', [
   check('email').not().isEmpty().isEmail().normalizeEmail(),

@@ -11,8 +11,16 @@ import {
   View,
 } from "react-native";
 import { updateUser } from "../../services/post/UpdateUser/updateUser";
-import { router } from "expo-router"; // Importe o router
+import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api } from "../../services/api";
+
+interface User {
+  name: string;
+  email: string;
+  password?: string; // Senha é opcional, pois talvez você não queira exibi-la
+  id: string;
+}
 
 export default function ProfileScreen() {
   const [email, setEmail] = useState("");
@@ -20,6 +28,7 @@ export default function ProfileScreen() {
   const [senha, setSenha] = useState("");
   const [senhaVisivel, setSenhaVisivel] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -28,16 +37,43 @@ export default function ProfileScreen() {
         setUserId(id);
       } catch (error) {
         setUserId(null);
+        setLoading(false); 
       }
     };
     fetchUserId();
   }, []);
 
+  useEffect(() => {
+    async function fetchUser() {
+      if (!userId) {
+        setLoading(false); 
+        return;
+      }
+      try {
+        const response = await api.get(`/user/${userId}`);
+        const fetchedUser: User = response.data.identifiedUser;
+        setEmail(fetchedUser.email);
+        setUsuario(fetchedUser.name);
+        setSenha(""); 
+
+        setLoading(false); 
+      } catch (err) {
+        console.error("Error fetching user data: ", err);
+        Alert.alert(
+          "Erro",
+          "Não foi possível carregar os dados do usuário."
+        );
+        setLoading(false); 
+      }
+    }
+    fetchUser();
+  }, [userId]); 
+
   const getUserId = async () => {
     try {
-      const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        return userId;
+      const storedUserId = await AsyncStorage.getItem("userId");
+      if (storedUserId) {
+        return storedUserId;
       } else {
         throw new Error("User ID not found in storage");
       }
@@ -76,10 +112,17 @@ export default function ProfileScreen() {
     Alert.alert("Logout", "Você saiu da conta!");
   };
 
-  // Nova função para navegar para favoritos
   const handleGoToFavs = () => {
     router.push("/screens/favs");
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loadingText}>Carregando perfil...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -106,12 +149,13 @@ export default function ProfileScreen() {
           value={email}
           onChangeText={setEmail}
           placeholderTextColor="#888"
+          keyboardType="email-address" 
         />
 
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
-            placeholder="Senha"
+            placeholder="Senha (deixe em branco para manter a atual)" 
             value={senha}
             onChangeText={setSenha}
             secureTextEntry={!senhaVisivel}
@@ -240,5 +284,12 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  loadingText: {
+    flex: 1,
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontSize: 18,
+    color: "#888",
   },
 });
