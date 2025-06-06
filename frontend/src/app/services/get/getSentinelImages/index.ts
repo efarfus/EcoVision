@@ -25,21 +25,21 @@ const fetchSatelliteImage = async (
       },
       data: [
         {
-          type: "S2L2A", // Sentinel-2 imagem com correção atmosférica
+          type: "S2L2A",
           dataFilter: {
             timeRange: {
-              from: "2016-01-01T00:00:00Z",
-              to: "2025-04-01T00:00:00Z",
+              from: "2024-01-01T00:00:00Z",
+              to: new Date().toISOString(),
             },
-            maxCloudCoverage: 10, 
+            maxCloudCoverage: 10,
             mosaickingOrder: "leastCC",
           },
         },
       ],
     },
     output: {
-      width: 224,
-      height: 224,
+      width: 512,
+      height: 512,
       responses: [
         {
           identifier: "default",
@@ -50,6 +50,25 @@ const fetchSatelliteImage = async (
       ],
     },
     evalscript: `//VERSION=3
+
+// --- Funções de Apoio para Melhoria de Imagem ---
+function saturate(rgb, saturation) {
+  const grey = (rgb[0] + rgb[1] + rgb[2]) / 3;
+  return [
+    grey * (1 - saturation) + rgb[0] * saturation,
+    grey * (1 - saturation) + rgb[1] * saturation,
+    grey * (1 - saturation) + rgb[2] * saturation
+  ];
+}
+function applyGamma(rgb, gamma) {
+    return [
+        Math.pow(rgb[0], 1/gamma),
+        Math.pow(rgb[1], 1/gamma),
+        Math.pow(rgb[2], 1/gamma)
+    ];
+}
+
+// --- Funções Principais do evalscript ---
 function setup() {
   return {
     input: ["B02", "B03", "B04"],
@@ -58,15 +77,18 @@ function setup() {
 }
 
 function evaluatePixel(sample) {
-  const minBrightness = 0.05; // threshold entre 0 e 1
-  const brightness = (sample.B02 + sample.B03 + sample.B04) / 3;
+  // --- Parâmetros ajustados ---
+  const gain = 2.2;
+  const saturation = 1.3;
+  const gamma = 1.2; // <<--- AUMENTAMOS O GAMMA
+  // ---------------------------
 
-  if (brightness < minBrightness) {
-    return [0, 0, 0]; // pixel escuro, retorna preto
-  }
+  let rgb = [ gain * sample.B04, gain * sample.B03, gain * sample.B02 ];
+  rgb = saturate(rgb, saturation);
+  rgb = applyGamma(rgb, gamma);
 
-  return [sample.B04, sample.B03, sample.B02]; // RGB padrão
-}`
+  return rgb;
+}`,
   };
 
   try {

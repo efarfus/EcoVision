@@ -19,18 +19,37 @@ def preprocess_image(image_bytes):
     img_array = np.array(img).astype(np.float32) 
     return np.expand_dims(img_array, axis=0)
 
-def postprocess_mask_to_base64(mask_tensor):
-    mask_array = (mask_tensor[0, :, :, 0].numpy() > 0.5).astype(np.uint8) * 255
-    
-    mask_image = Image.fromarray(mask_array, mode='L') 
+def postprocess_mask_and_calculate_percentage(mask_tensor):
 
+    # 1. Criar a máscara binária
+    mask_is_forest = (mask_tensor[0, :, :, 0].numpy() > 0.5)
+
+    # 2. Calcular a porcentagem
+    forest_pixels = mask_is_forest.sum()
+    total_pixels = mask_is_forest.shape[0] * mask_is_forest.shape[1]
+
+    # Evitar divisão por zero se a imagem for inválida
+    if total_pixels == 0:
+        forest_percentage = 0.0
+    else:
+        # (pixels de desmatamento / pixels totais) * 100
+        forest_percentage = (forest_pixels / total_pixels) * 100
+        
+    deforestation_percentage = 100.0 - forest_percentage
+
+    # 3. Preparar a máscara para imagem (convertendo 0 e 1 para 0 e 255)
+    mask_image_array = (mask_is_forest.astype(np.uint8) * 255)
+    mask_image = Image.fromarray(mask_image_array, mode='L')
+
+    # 4. Converter a imagem para Base64
     buffer = io.BytesIO()
     mask_image.save(buffer, format="PNG")
-    
     base64_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    
-    return base64_string
 
+    return {
+        'mask_base64': base64_string,
+        'deforestation_percentage': deforestation_percentage
+    }
 
 @predict_bp.route('/predict', methods=['POST'])
 def predict():
@@ -50,10 +69,10 @@ def predict():
         prediction_output = model(input_img)
         mask_tensor = prediction_output['output_0']
         
-        mask_base64 = postprocess_mask_to_base64(mask_tensor)
-        print("mask", mask_base64)
+        result = postprocess_mask_and_calculate_percentage(mask_tensor)
+        print("mask", result)
 
-        return jsonify({'mask_base64': mask_base64})
+        return jsonify(result)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

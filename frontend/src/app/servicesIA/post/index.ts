@@ -3,7 +3,7 @@ import * as FileSystem from "expo-file-system";
 
 export const postImage = async (
   uri: string
-): Promise<{ mask_base64: string }> => {
+): Promise<{ mask_base64: string, deforestation_percentage:number }> => {
   try {
     let base64String: string;
 

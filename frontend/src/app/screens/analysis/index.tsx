@@ -13,11 +13,17 @@ import { router, useLocalSearchParams } from "expo-router";
 import { postImage } from "../../servicesIA/post";
 import getSentinelImagesByYear from "../../services/get/getSentinelImagesByYear";
 import { Buffer } from "buffer";
+import { IconStar, IconStarFilled } from "@tabler/icons-react-native";
+import { postFavs } from "../../services/post/PostFavs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const YEARS = [2016, 2017, 2018, 2019, 2020];
+const YEARS = [2017, 2018, 2019, 2020, 2021];
 
 export default function AnalysisScreen() {
   const params = useLocalSearchParams();
+  const [mainMaskPercentage, setMainMaskPercentage] = useState<number | null>(
+    null
+  );
   const [initialLatitude, setInitialLatitude] = useState<number | null>(null);
   const [initialLongitude, setInitialLongitude] = useState<number | null>(null);
   const [mainImageDisplayUri, setMainImageDisplayUri] = useState<string | null>(
@@ -28,9 +34,75 @@ export default function AnalysisScreen() {
   const [comparisonImage, setComparisonImage] = useState<{
     satelliteUri: string;
     maskUri: string;
+    percentage: number;
   } | null>(null);
   const [isComparisonLoading, setIsComparisonLoading] = useState(false);
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Função para obter o userId do AsyncStorage
+  const getUserId = async () => {
+    try {
+      const storedUserId = await AsyncStorage.getItem("userId");
+      if (storedUserId) {
+        return storedUserId;
+      } else {
+        throw new Error("User ID not found in storage");
+      }
+    } catch (error) {
+      console.error("Erro ao obter ID do usuário:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    getUserId()
+      .then((id) => {
+        if (id) {
+          setUserId(id);
+        } else {
+          console.warn("User ID not found in storage");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user ID:", error);
+      });
+  }, []);
+
+  const handleFavorite = async () => {
+    if (
+      !initialLatitude ||
+      !initialLongitude ||
+      !mainImageDisplayUri ||
+      !userId
+    ) {
+      alert("Não é possível favoritar: dados incompletos.");
+      return;
+    }
+
+    // Inverte o estado para dar feedback visual
+    setIsFavorite(!isFavorite);
+
+    try {
+      // Envia para a API apenas se não estiver favoritado ainda
+      if (!isFavorite) {
+        await postFavs({
+          latitude: initialLatitude,
+          longitude: initialLongitude,
+          uri: mainImageDisplayUri,
+          userId: userId,
+        });
+        alert("Local salvo nos seus favoritos!");
+      } else {
+        alert("Local removido dos favoritos.");
+      }
+    } catch (error) {
+      console.error("Erro ao favoritar:", error);
+      alert("Ocorreu um erro ao salvar o favorito.");
+      setIsFavorite(isFavorite);
+    }
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -48,6 +120,7 @@ export default function AnalysisScreen() {
           const result = await postImage(imageUri);
           if (result.mask_base64) {
             setMainMaskUri(`data:image/png;base64,${result.mask_base64}`);
+            setMainMaskPercentage(result.deforestation_percentage);
           }
         } catch (error) {
           console.error(
@@ -85,12 +158,11 @@ export default function AnalysisScreen() {
         year
       );
 
-      let satelliteImageUriString = ""; 
+      let satelliteImageUriString = "";
 
       if (typeof newSatelliteImageUri === "string") {
         satelliteImageUriString = newSatelliteImageUri;
       } else if (newSatelliteImageUri instanceof ArrayBuffer) {
-
         const base64 = Buffer.from(newSatelliteImageUri).toString("base64");
         satelliteImageUriString = `data:image/png;base64,${base64}`;
       }
@@ -108,6 +180,7 @@ export default function AnalysisScreen() {
         setComparisonImage({
           satelliteUri: satelliteImageUriString,
           maskUri: `data:image/png;base64,${result.mask_base64}`,
+          percentage: result.deforestation_percentage,
         });
       }
     } catch (error) {
@@ -145,9 +218,22 @@ export default function AnalysisScreen() {
         style={styles.contentContainer}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <Text style={styles.detailText}>
-          Coordenadas: {initialLatitude}, {initialLongitude}
-        </Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.detailText}>
+            Coordenadas: {initialLatitude?.toFixed(4)},{" "}
+            {initialLongitude?.toFixed(4)}
+          </Text>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={handleFavorite}
+          >
+            {isFavorite ? (
+              <IconStarFilled size={28} color="#FFD700" />
+            ) : (
+              <IconStar size={28} color="#ccc" />
+            )}
+          </TouchableOpacity>
+        </View>
         <Image
           source={{ uri: mainImageDisplayUri }}
           style={styles.detailImage}
@@ -155,7 +241,14 @@ export default function AnalysisScreen() {
 
         <Text style={styles.sectionTitle}>Máscara da Imagem Principal</Text>
         {mainMaskUri ? (
-          <Image source={{ uri: mainMaskUri }} style={styles.detailImage} />
+          <>
+            <Image source={{ uri: mainMaskUri }} style={styles.detailImage} />
+            {mainMaskPercentage !== null && (
+              <Text style={styles.percentageText}>
+                Área de desmatamento: {mainMaskPercentage.toFixed(2)}%
+              </Text>
+            )}
+          </>
         ) : (
           <Text>Máscara não disponível.</Text>
         )}
@@ -210,8 +303,39 @@ export default function AnalysisScreen() {
                     source={{ uri: comparisonImage.maskUri }}
                     style={styles.detailImage}
                   />
+                  {mainMaskPercentage !== null && (
+                    <Text style={styles.percentageText}>
+                      Área de desmatamento:{" "}
+                      {comparisonImage.percentage.toFixed(2)}%
+                    </Text>
+                  )}
                 </>
               )
+            )}
+            {mainMaskPercentage !== null && (
+              <View style={styles.summaryContainer}>
+                <Text style={styles.sectionTitle}>Resumo da Análise</Text>
+                <Text style={styles.summaryText}>
+                  Desmatamento na imagem principal:{" "}
+                  {mainMaskPercentage.toFixed(2)}%
+                </Text>
+                <Text style={styles.summaryText}>
+                  Desmatamento em {selectedYear}:{" "}
+                  {comparisonImage
+                    ? comparisonImage.percentage.toFixed(2)
+                    : "--"}
+                  %
+                </Text>
+                <Text style={[styles.summaryText, styles.summaryHighlight]}>
+                  Variação:{" "}
+                  {comparisonImage
+                    ? (comparisonImage.percentage - mainMaskPercentage).toFixed(
+                        2
+                      )
+                    : "--"}
+                  %
+                </Text>
+              </View>
             )}
           </View>
         )}
@@ -221,6 +345,20 @@ export default function AnalysisScreen() {
 }
 
 const styles = StyleSheet.create({
+  titleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  detailText: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1, // Permite que o texto cresça e empurre o botão
+  },
+  favoriteButton: {
+    padding: 8,
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -299,5 +437,31 @@ const styles = StyleSheet.create({
   },
   comparisonSection: {
     marginTop: 20,
+  },
+  percentageText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#007AFF",
+    textAlign: "center",
+    marginTop: 10,
+  },
+  summaryContainer: {
+    marginTop: 30,
+    padding: 15,
+    backgroundColor: "#f7f7f7",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  summaryText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#333",
+  },
+  summaryHighlight: {
+    marginTop: 10,
+    fontWeight: "bold",
+    fontSize: 18,
+    color: "#d9534f",
   },
 });
