@@ -373,10 +373,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  detailText: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
   detailImage: {
     width: "100%",
     height: 250,

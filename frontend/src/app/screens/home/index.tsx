@@ -84,6 +84,7 @@ export default function Home() {
   const handleAnalysisPress = () => {
     if (selectedCoords && imageUri) {
       // Certifique-se de que tem os dados
+      setModalVisible(false)
       router.push({
         pathname: "/screens/analysis",
         params: {

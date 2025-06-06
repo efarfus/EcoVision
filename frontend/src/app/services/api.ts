@@ -2,8 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 export const api = axios.create({
-  // Rotear com o celular e ver o ipv4 e adicionar abaixo
-  baseURL: "http://172.25.96.1:3000",
+  //Rotear com celular, entrar na rede, e conectar com o ipv4 de refe WIFI
+  baseURL: "http://192.168.176.201:3000",
 });
 
 api.interceptors.request.use((config) => {
