@@ -62,11 +62,13 @@ export default function Register() {
       <TextInputLogin
         placeholder="Password"
         IconComponent={IconKey}
+        isPassword={true}
         onChangeText={(text) => setPassword(text)}
       ></TextInputLogin>
       <TextInputLogin
         placeholder="Confirm Password"
         IconComponent={IconKey}
+        isPassword={true}
         onChangeText={(text) => setConfirmPassword(text)}
       ></TextInputLogin>
       <Button

@@ -165,7 +165,7 @@ export default function ProfileScreen() {
           />
           <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)}>
             <Ionicons
-              name={senhaVisivel ? "eye-outline" : "eye-off-outline"}
+              name={senhaVisivel ? "eye-off-outline" : "eye-outline"}
               size={22}
               color="#888"
               style={{ marginLeft: 10 }}

@@ -58,6 +58,7 @@ export default function Login() {
         placeholder="Password"
         IconComponent={IconKey}
         onChangeText={(text) => setPassword(text)}
+        isPassword={true}
       ></TextInputLogin>
       <Button
         title="Login"
