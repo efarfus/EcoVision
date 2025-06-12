@@ -11,8 +11,6 @@ import {
 import Toolbar from "../../components/Toolbar";
 import { router, useLocalSearchParams } from "expo-router";
 import { getFavsById } from "../../services/get/getFavsById";
-
-// --- LÓGICA DA ANÁLISE IMPORTADA ---
 import { postImage } from "../../servicesIA/post";
 import getSentinelImagesByYear from "../../services/get/getSentinelImagesByYear";
 import { Buffer } from "buffer";
@@ -24,7 +22,6 @@ interface FavoriteDetails {
   uri: string;
 }
 
-// Anos mais recentes para uma comparação mais relevante
 const YEARS = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
 
 export default function FavsDetails() {
@@ -32,7 +29,6 @@ export default function FavsDetails() {
   const [favsDetails, setFavsDetails] = useState<FavoriteDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // --- ESTADOS DA ANÁLISE ---
   const [mainMaskUri, setMainMaskUri] = useState<string | null>(null);
   const [mainMaskPercentage, setMainMaskPercentage] = useState<number | null>(
     null
@@ -49,7 +45,7 @@ export default function FavsDetails() {
     if (id) {
       const fetchDataAndAnalyze = async () => {
         try {
-          // 1. Busca os detalhes do favorito (imagem principal, lat, lng)
+          // 1. Busca os detalhes do favorito 
           const response = await getFavsById(id);
           if (response && response.coordinates) {
             const details = response.coordinates;
@@ -80,7 +76,6 @@ export default function FavsDetails() {
     router.back();
   };
 
-  // --- LÓGICA DE COMPARAÇÃO REAL ---
   const handleYearSelect = async (year: number) => {
     if (selectedYear === year || isComparisonLoading || !favsDetails) return;
 
@@ -259,7 +254,6 @@ export default function FavsDetails() {
   );
 }
 
-// Adicione todos os estilos da AnalysisScreen aqui para garantir a consistência
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -310,7 +304,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#e9e9e9",
     borderRadius: 20,
     marginVertical: 5,
-    minWidth: "23%", // Ajuste para caber mais anos
+    minWidth: "23%", 
     alignItems: "center",
   },
   selectedYearButton: {

@@ -111,6 +111,7 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert("Logout", "Você saiu da conta!");
+    router.push("/")
   };
 
   const handleGoToFavs = () => {

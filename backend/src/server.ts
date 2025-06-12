@@ -11,15 +11,28 @@ const PORT = process.env.PORT || 3000;
 
 const getLocalIP = (): string => {
   const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    if (name.toLowerCase().includes('wi-fi')) {
+      const iface = interfaces[name];
+      if (!iface) continue;
 
-  for (const iface of Object.values(interfaces)) {
-    if (!iface) continue;
-    for (const config of iface as os.NetworkInterfaceInfo[]) {
-      if (config.family === 'IPv4' && !config.internal) {
-        return config.address;
+      for (const config of iface) {
+        if (config.family === 'IPv4' && !config.internal) {
+          return config.address;
+        }
       }
     }
   }
+
+  for (const iface of Object.values(interfaces)) {
+    if (!iface) continue;
+    for (const config of iface) {
+      if (config.family === 'IPv4' && !config.internal) {
+        return config.address; // Retorna o primeiro que encontrar
+      }
+    }
+  }
+
 
   return 'localhost';
 };

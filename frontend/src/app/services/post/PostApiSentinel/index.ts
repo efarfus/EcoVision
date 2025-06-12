@@ -1,6 +1,6 @@
 const getAccessToken = async () => {
-  const clientId = "78e04c94-38e0-4577-9833-d1e321c2ecc2";
-  const clientSecret = "9awpa8k3l4xkzy01y6Q9c9Dk4cDw7Wrq";
+  const clientId = "3cf365d6-66b7-4d14-a667-8759ad7a69d4";
+  const clientSecret = "qgE3zqXiBZApTAPZT2gQG2VD73FkUzf5";
 
   const body = new URLSearchParams({
     grant_type: "client_credentials",
